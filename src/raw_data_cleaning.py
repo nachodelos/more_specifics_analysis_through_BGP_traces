@@ -41,7 +41,7 @@ def dump_into_lists( my_str, from_to_indexes, times, types, s_IPs, s_AS, prefixe
 # VARIABLES
 file_path = '/Users/nachogutierrez/Documents/traffic_engineering_analysis/data/updates.20171030.2335.gz'
 bggdump_path = '/usr/local/bin/bgpdump'
-output_file_path = '/Users/nachogutierrez/Documents/traffic_engineering_analysis/results/rawdata_updates.20171030.2335.gz_2_prueba.xlsx'
+output_file_path = '/Users/nachogutierrez/Documents/traffic_engineering_analysis/results/rawdata_updates.20171030.2335.gz_2_my_df.csv'
 
 # dump file into list of Strings
 update_lines  = subprocess.check_output ([ bggdump_path, '-m', file_path]).strip().split('\n')
@@ -63,13 +63,13 @@ for i in range(len(update_lines)):
 
 df_update = pd.DataFrame({ 'TIME' : times, 'TYPE': types, 'Source_IP': s_IPs, 'Source_AS': s_AS,'PREFIX': prefixes, 'AS_PATH': AS_PATHs})
 
-writer = pd.ExcelWriter(output_file_path, engine = 'xlsxwriter')
+writer = pd.ExcelWriter(output_file_path + '.xlsx', engine = 'xlsxwriter')
 df_update.to_excel(writer, sheet_name = 'Sheet1')
 writer.save()
 
-df_update.to_pickle('/Users/nachogutierrez/Documents/traffic_engineering_analysis/results/my_df.pickle')
+df_update.to_pickle( output_file_path + '.pickle')
 
-
+df_update.to_csv( output_file_path + '.csv', sep = ';', encoding= 'utf-8')
 
 
         
