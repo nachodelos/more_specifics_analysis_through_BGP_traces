@@ -17,7 +17,7 @@ def seek_separator( my_str ):
             
     return  from_to_indexes     
 
-def dump_into_lists( my_str, from_to_indexes, times, types, s_IPs, s_AS, prefixes, AS_PATHs):
+def dump_into_lists( my_str, from_to_indexes, times, types, s_IPs, s_AS, prefixes, AS_PATHs): 
         
     for k in range(1, len(from_to_indexes)):
         to_index = from_to_indexes[k] - 1
@@ -66,6 +66,10 @@ df_update = pd.DataFrame({ 'TIME' : times, 'TYPE': types, 'Source_IP': s_IPs, 'S
 writer = pd.ExcelWriter(output_file_path, engine = 'xlsxwriter')
 df_update.to_excel(writer, sheet_name = 'Sheet1')
 writer.save()
+
+df_update.to_pickle('/Users/nachogutierrez/Documents/traffic_engineering_analysis/results/my_df.pickle')
+
+
 
 
         
