@@ -24,8 +24,7 @@ def dump_into_lists( my_str, from_to_indexes, times, types, s_IPs, s_AS, prefixe
     for k in range(1, n_elements):
         to_index = from_to_indexes[k] - 1
         from_index = from_to_indexes[k-1]
-        # Sería correcto hacer esto???
-#        if (len(from_to_indexes) > 6) :        
+      
         if k == 1:
             times.append( update_lines[i][from_index:to_index])
         elif k == 2:
