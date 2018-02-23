@@ -16,15 +16,15 @@ def seek_separator( my_str ):
             from_to_indexes.append( j+1)
             
     return  from_to_indexes     
+  
 
-def dump_into_lists( my_str, from_to_indexes, times, types, s_IPs, s_AS, prefixes, AS_PATHs): 
+def dump_into_lists( my_str, from_to_indexes, times, types, s_IPs, s_AS, prefixes, AS_PATHs):  
         
     for k in range(1, len(from_to_indexes)):
         to_index = from_to_indexes[k] - 1
         from_index = from_to_indexes[k-1]
         # Sería correcto hacer esto???
-        if (len(from_to_indexes) > 6) :
-            
+        if (len(from_to_indexes) > 6) :        
             if k == 1:
                 times.append( update_lines[i][from_index:to_index])
             elif k == 2:
@@ -36,12 +36,13 @@ def dump_into_lists( my_str, from_to_indexes, times, types, s_IPs, s_AS, prefixe
             elif k == 5:
                 prefixes.append( update_lines[i][from_index:to_index])
             elif k == 6:     
-                AS_PATHs.append( update_lines[i][from_index:to_index])
+                AS_PATH_list = update_lines[i][from_index:to_index].split(' ')
+                AS_PATHs.append( AS_PATH_list)
     
 # VARIABLES
 file_path = '/Users/nachogutierrez/Documents/traffic_engineering_analysis/data/updates.20171030.2335.gz'
 bggdump_path = '/usr/local/bin/bgpdump'
-output_file_path = '/Users/nachogutierrez/Documents/traffic_engineering_analysis/results/rawdata_updates.20171030.2335.gz_2_my_df.csv'
+output_file_path = '/Users/nachogutierrez/Documents/traffic_engineering_analysis/results/rawdata_updates.20171030.2335.gz_2_my_df'
 
 # dump file into list of Strings
 update_lines  = subprocess.check_output ([ bggdump_path, '-m', file_path]).strip().split('\n')
