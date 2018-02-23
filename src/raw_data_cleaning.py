@@ -65,12 +65,12 @@ for i in range(len(update_lines)):
 df_update = pd.DataFrame({ 'TIME' : times, 'TYPE': types, 'Source_IP': s_IPs, 'Source_AS': s_AS,'PREFIX': prefixes, 'AS_PATH': AS_PATHs})
 
 writer = pd.ExcelWriter(output_file_path + '.xlsx', engine = 'xlsxwriter')
-df_update.to_excel(writer, sheet_name = 'Sheet1')
+df_update.to_excel(writer, sheet_name = 'Sheet1', index_label = 'ID')
 writer.save()
 
 df_update.to_pickle( output_file_path + '.pickle')
 
-df_update.to_csv( output_file_path + '.csv', sep = ';', encoding= 'utf-8')
+df_update.to_csv( output_file_path + '.csv' , sep = ';', encoding= 'utf-8')
 
 
         
