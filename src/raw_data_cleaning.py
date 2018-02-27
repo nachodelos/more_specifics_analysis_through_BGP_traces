@@ -66,16 +66,19 @@ for i in range(len(update_lines)):
     from_to_indexes = seek_separator(update_lines[i])
     dump_into_lists(update_lines[i], from_to_indexes, times, types, s_IPs, s_AS, prefixes, AS_PATHs)       
 
-
+print (' Data saved as lists!')
 df_update = pd.DataFrame({ 'TIME' : times, 'TYPE': types, 'Source_IP': s_IPs, 'Source_AS': s_AS,'PREFIX': prefixes, 'AS_PATH': AS_PATHs})
-
+print (' Data Frame created!')
 writer = pd.ExcelWriter(output_file_path + '.xlsx', engine = 'xlsxwriter')
 df_update.to_excel(writer, sheet_name = 'Sheet1', index_label = 'ID')
 writer.save()
+print(' Excel File saved!')
 
 df_update.to_pickle( output_file_path + '.pickle')
+print(' pickle File saved!')
 
 df_update.to_csv( output_file_path + '.csv' , sep = ';', encoding= 'utf-8')
+print(' csv File saved!')
 
 
         
