@@ -5,8 +5,14 @@ This script dumps data into a proper struct to work more efficiency in Python
 """
 import subprocess
 import pandas as pd
+
+
+# VARIABLES (pathlib)
+file_path = '/Users/nachogutierrez/Documents/traffic_engineering_analysis/data/updates.20171030.2335.gz'
+bggdump_path = '/usr/local/bin/bgpdump'
+output_file_path = '/Users/nachogutierrez/Documents/traffic_engineering_analysis/results/rawdata_updates.20171030.2335.gz_2_my_df'
  
-    # FUNCTIONS
+# FUNCTIONS
 def seek_separator( my_str ):
        
     from_to_indexes = []
@@ -44,11 +50,6 @@ def dump_into_lists( update_lines, from_to_indexes, times, types, s_IPs, s_AS, p
         elif k == 6:     
             AS_PATH_list = update_lines[from_index:to_index].split(' ')
             AS_PATHs.append( AS_PATH_list)
-        
-# VARIABLES (pathlib)
-file_path = '/Users/nachogutierrez/Documents/traffic_engineering_analysis/data/updates.20171030.2335.gz'
-bggdump_path = '/usr/local/bin/bgpdump'
-output_file_path = '/Users/nachogutierrez/Documents/traffic_engineering_analysis/results/rawdata_updates.20171030.2335.gz_2_my_df'
     
 # dump file into list of Strings
 update_lines  = subprocess.check_output ([ bggdump_path, '-m', file_path]).strip().split('\n')
