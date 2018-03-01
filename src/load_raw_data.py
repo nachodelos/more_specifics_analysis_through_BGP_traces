@@ -5,12 +5,6 @@ This script dumps data into a proper struct to work more efficiency in Python
 """
 import subprocess
 import pandas as pd
-
-
-# VARIABLES (pathlib)
-file_path = '/Users/nachogutierrez/Documents/traffic_engineering_analysis/data/updates.20171030.2335.gz'
-bggdump_path = '/usr/local/bin/bgpdump'
-output_file_path = '/Users/nachogutierrez/Documents/traffic_engineering_analysis/results/rawdata_updates.20171030.2335.gz_2_my_df'
  
 # FUNCTIONS
 def seek_separator( my_str ):
@@ -19,6 +13,7 @@ def seek_separator( my_str ):
     str_len = len(my_str)
         
     for j in range(str_len):
+        #Stroring element indexes
         if my_str[j] == '|':
             from_to_indexes.append( j+1)
             
@@ -50,9 +45,35 @@ def dump_into_lists( update_lines, from_to_indexes, times, types, s_IPs, s_AS, p
         elif k == 6:     
             AS_PATH_list = update_lines[from_index:to_index].split(' ')
             AS_PATHs.append( AS_PATH_list)
+
+
+# VARIABLES (pathlib)
+file_path = '/Users/nachogutierrez/Documents/traffic_engineering_analysis/data/rrc00/2018.01/updates.20180101.00'
+bggdump_path = '/usr/local/bin/bgpdump'
+output_file_path = '/Users/nachogutierrez/Documents/traffic_engineering_analysis/results/rrc00/2018.01/Excel_files/rawdata_updates.20180101.00'
+  
+
+# VARIABLES (experiment)
+hop_size = 5
+from_date ='20180101.0000' 
+to_date = '20180101.0010'
+
+from_min = int( from_date.split('.')[1][2:4])
+to_min = int( to_date.split('.')[1][2:4])
+
+update_lines = []
+
+for ft in range( from_min, to_min + 1, hop_size):
+    print (ft)
+    if(ft<10):
+        ft_str = '0'+str(ft)
+    else:
+        ft_str = str(ft)   
     
-# dump file into list of Strings
-update_lines  = subprocess.check_output ([ bggdump_path, '-m', file_path]).strip().split('\n')
+    update_lines  += subprocess.check_output ([ bggdump_path, '-m', file_path + ft_str + '.gz']).strip().split('\n')
+  
+# dump files into list of Strings
+
     
 # DATA FIELDS
 times = []
@@ -70,7 +91,7 @@ for i in range(len(update_lines)):
 print (' Data saved as lists!')
 df_update = pd.DataFrame({ 'TIME' : times, 'TYPE': types, 'Source_IP': s_IPs, 'Source_AS': s_AS,'PREFIX': prefixes, 'AS_PATH': AS_PATHs})
 print (' Data Frame created!')
-writer = pd.ExcelWriter(output_file_path + '.xlsx', engine = 'xlsxwriter')
+writer = pd.ExcelWriter(output_file_path + '.gz_2_my_df.xlsx', engine = 'xlsxwriter')
 df_update.to_excel(writer, sheet_name = 'Sheet1', index_label = 'ID')
 writer.save()
 print(' Excel File saved!')
