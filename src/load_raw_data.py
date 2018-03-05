@@ -67,7 +67,7 @@ for i in range(len(update_lines)):
     dump_into_lists(update_lines[i],  times, types, s_IPs, s_AS, prefixes, AS_PATHs)       
     
 print (' Data saved as lists!')
-df_update = pd.DataFrame({ 'TIME' : times, 'TYPE': types, 'Source_IP': s_IPs, 'Source_AS': s_AS,'PREFIX': prefixes, 'AS_PATH': AS_PATHs})
+df_update = pd.DataFrame({ 'TIME' : times, 'TYPE': types, 'MONITOR': s_IPs, 'AS': s_AS,'PREFIX': prefixes, 'AS_PATH': AS_PATHs})
 print (' Data Frame created!')
 writer = pd.ExcelWriter(output_file_path + from_date + '-'+ to_date +'.xlsx', engine = 'xlsxwriter')
 df_update.to_excel(writer, sheet_name = 'Sheet1', index = False)
