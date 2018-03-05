@@ -53,9 +53,6 @@ for ft in range( from_min, to_min + 1, hop_size):
         ft_str = str(ft)   
     print (file_path + ft_str + '.gz')
     update_lines  += subprocess.check_output ([ bggdump_path, '-m', file_path + ft_str + '.gz']).strip().split('\n')
-  
-# dump files into list of Strings
-
     
 # DATA FIELDS
 times = []
