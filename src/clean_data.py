@@ -16,9 +16,6 @@ def get_STATE_indexes( types):
 			indexes.append( i)
 	return indexes		
 
-def get_indexes_to_delete( state_i, state_time, monitor):
-	
-
 # VARIABLES (experiment)
 from_date ='20180101.0000' 
 to_date = '20180101.0010'
@@ -45,8 +42,8 @@ print(df_time_mm.tail() )
 state_indexes = get_STATE_indexes(df_type_list)
 print ( len(state_indexes)) 
 
-for i in reversed(indexes):
-	print i
+
+
 
 
 
