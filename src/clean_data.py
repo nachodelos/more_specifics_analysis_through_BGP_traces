@@ -16,8 +16,8 @@ def get_STATE_indexes( types):
 	return indexes		
 
 # VARIABLES (experiment)
-from_date ='20180101.0000' 
-to_date = '20180101.0010'
+from_date ='20180105.0000' 
+to_date = '20180105.0010'
 input_file_path = '/srv/agarcia/igutierrez/results/rrc00/rawdata_updates.' + from_date + '-'+ to_date +'.xlsx'
 print ( 'Loading ' + input_file_path + '...')
 
@@ -26,7 +26,7 @@ df = pd.read_excel( input_file_path)
 print( 'Data loaded successfully')
 print( df.head())
 
-print( '\nConverting timestamp to minutes...')
+print( '\nConverting timestamp to minutes...\n')
 
 df_time_s = df['TIME']
 df_time_mm = df_time_s // 60
