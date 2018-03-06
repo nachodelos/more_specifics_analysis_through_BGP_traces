@@ -5,7 +5,6 @@ This script cleans data following several recomendations of the article "Quantif
 
 """
 
-from time import strftime, time
 import pandas as pd
 
 # FUNCTIONS
