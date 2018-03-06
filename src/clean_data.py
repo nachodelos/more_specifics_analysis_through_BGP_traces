@@ -73,4 +73,4 @@ df_monitor = df['MONITOR']
 
 for i in reversed([605]):
     from_window, to_window = create_window( i, df_time_list)
-    affected_messages = get_affected_messages_indexes( i, from_window, to_window, df_time_list, df_monitor)
+    affected_messages = get_affected_message_indexes( i, from_window, to_window, df_time_list, df_monitor)
