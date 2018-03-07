@@ -72,8 +72,6 @@ df_update = pd.DataFrame({ 'TIME' : times, 'TYPE': types, 'MONITOR': s_IPs, 'AS'
 print (' Data Frame created!')
 writer = pd.ExcelWriter(output_file_path + from_date + '-'+ to_date +'.xlsx', engine = 'xlsxwriter')
 df_update.to_excel(writer, sheet_name = 'Sheet1', index = False)
-
-df_update.to_excel(writer, sheet_name = 'Sheet1', index = False)
 writer.save()
 print(' Excel File saved!')
 
