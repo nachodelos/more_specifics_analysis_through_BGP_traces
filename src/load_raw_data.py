@@ -9,21 +9,19 @@ import pandas as pd
 # FUNCTIONS
 def dump_into_lists( update_lines, times, types, s_IPs, s_AS, prefixes, AS_PATHs):  
      
-    m = update_lines.split('|')
-
-    m_type = m[2]
+    mesage = update_lines.split('|')
     
-    times.append ( m[1])
-    types.append ( m[2])
-    s_IPs.append ( m[3])
-    s_AS.append ( m[4])
+    times.append ( mesage[1])
+    types.append ( mesage[2])
+    s_IPs.append ( mesage[3])
+    s_AS.append ( mesage[4])
     
     if m_type == 'A':
-        prefixes.append( m[5])
-        AS_PATH_list = m[6].split(' ')
+        prefixes.append( mesage[5])
+        AS_PATH_list = mesage[6].split(' ')
         AS_PATHs.append( AS_PATH_list)        
     elif m_type == 'W':
-        prefixes.append( m[5])
+        prefixes.append( mesage[5])
         AS_PATHs.append( [])     
     elif m_type == 'STATE':
         prefixes.append( '')
