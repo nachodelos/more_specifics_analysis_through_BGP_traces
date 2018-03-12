@@ -15,39 +15,41 @@ def get_STATE_indexes( types):
 			indexes.append( i)
 	return indexes		
 
-def create_window( state_index, times):
+def get_affected_message_indexes( state_index, monitors, types, times):
+    
+    i = state_index
     
     central_time = int(times[state_index])
     initial_time = central_time - 5 
     final_time = central_time + 5
     
-    if( final_time > int(times[len(times)-1])) :
-        final_time = int(times[len(times)-1])
-        
-    if( initial_time < int(times[0])) :
-        initial_time = int(times[0])
-        
-    return initial_time, final_time
-
-# CLEANING PER MONITOR!!!
-def get_affected_message_indexes( state_index, from_window, to_window, times, monitors):
-    
+    affected_indexes_forward = []
     monitor = monitors[state_index]
-    window = range(times.index(from_window), times.index(to_window))
     
-    affected_indexes = []
+    while ( i+1 < len( monitors) and monitors[i+1] == monitor and times[i+1] <= final_time):
+        i = i+1
+        if ( types[i] != 'STATE'):
+            affected_indexes_forward.append(i)
+            
+    affected_indexes_backward = []
+        
+    while ( i-1 > 0 and monitors[i-1] == monitor and times[i-1] <= initial_time):
+        i = i-1
+        if ( types[i] != 'STATE'):
+            affected_indexes_backward.append(i) 
     
-    for i in window:
-        if ( monitor == monitors[i]):
-            affected_indexes.append( i)
-    
+    affected_indexes = affected_indexes_backward + [state_index] + affected_indexes_forward   
+
     return affected_indexes
     
 # VARIABLES (experiment)
-from_date ='20180105.0000' 
-to_date = '20180105.0010'
-input_file_path = '/srv/agarcia/igutierrez/results/rrc00/rawdata_updates.' + from_date + '-'+ to_date +'.xlsx'
+from_date ='20180108.0400' 
+to_date = '20180108.0410'
+input_file_path = '/srv/agarcia/igutierrez/results/rrc00/raw_2_sort_data_updates.' + from_date + '-'+ to_date +'.xlsx'
+output_file_path = '/srv/agarcia/igutierrez/results/rrc00/sort_2_clean_data_updates.'
+
 print ( 'Loading ' + input_file_path + '...')
+
 
 df = pd.read_excel( input_file_path)
 
@@ -70,7 +72,20 @@ state_indexes = get_STATE_indexes( df_type_list)
 print ( len(state_indexes)) 
 
 df_monitor = df['MONITOR']
+df_monitor_list = df_monitor.tolist()
 
-for i in reversed([605]):
-    from_window, to_window = create_window( i, df_time_list)
-    affected_messages = get_affected_message_indexes( i, from_window, to_window, df_time_list, df_monitor)
+affected_messages = []
+
+print ( '\nSearching affected messages...')
+
+df_clean = df
+
+for i in reversed( state_indexes):
+    affected_indexes = get_affected_message_indexes( i, df_monitor_list, df_type_list, df_time_list)
+    df_clean = df_clean.drop(df.index[affected_indexes])
+
+writer = pd.ExcelWriter(output_file_path + from_date + '-'+ to_date +'.xlsx', engine = 'xlsxwriter')
+df_clean.to_excel(writer, sheet_name = 'Sheet1') 
+writer.save()
+print ('Clean data saved')  
+
