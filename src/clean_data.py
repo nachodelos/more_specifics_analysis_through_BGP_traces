@@ -23,30 +23,30 @@ def get_affected_message_indexes( state_index, monitors, types, times):
     initial_time = central_time - 5 
     final_time = central_time + 5
     
-    affected_indexes_forward = []
+    forward_affected_indexes = []
     monitor = monitors[state_index]
     
     while ( i+1 < len( monitors) and monitors[i+1] == monitor and times[i+1] <= final_time):
         i = i+1
         if ( types[i] != 'STATE'):
-            affected_indexes_forward.append(i)
+            forward_affected_indexes.append(i)
             
-    affected_indexes_backward = []
+    backward_affected_indexes = []
         
     while ( i-1 > 0 and monitors[i-1] == monitor and times[i-1] <= initial_time):
         i = i-1
         if ( types[i] != 'STATE'):
-            affected_indexes_backward.append(i) 
+            backward_affected_indexes.append(i) 
     
-    affected_indexes = affected_indexes_backward + [state_index] + affected_indexes_forward   
+    affected_indexes = backward_affected_indexes + [state_index] + forward_affected_indexes   
 
     return affected_indexes
     
 # VARIABLES (experiment)
 from_date ='20180108.0400' 
 to_date = '20180108.0410'
-input_file_path = '/srv/agarcia/igutierrez/results/rrc00/raw_2_sort_data_updates.' + from_date + '-'+ to_date +'.xlsx'
-output_file_path = '/srv/agarcia/igutierrez/results/rrc00/sort_2_clean_data_updates.'
+input_file_path = '/srv/agarcia/igutierrez/results/rrc00/raw_2_sort_data_for_cleaning_updates.' + from_date + '-'+ to_date +'.xlsx'
+output_file_path = '/srv/agarcia/igutierrez/results/rrc00/sort_2_clean_data.'
 
 print ( 'Loading ' + input_file_path + '...')
 
