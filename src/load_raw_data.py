@@ -1,3 +1,4 @@
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
 This script dumps data into a proper struct to work more efficiency in Python
@@ -9,19 +10,21 @@ import pandas as pd
 # FUNCTIONS
 def dump_into_lists( update_lines, times, types, s_IPs, s_AS, prefixes, AS_PATHs):  
      
-    mesage = update_lines.split('|')
+    message = update_lines.split('|')
     
-    times.append ( mesage[1])
-    types.append ( mesage[2])
-    s_IPs.append ( mesage[3])
-    s_AS.append ( mesage[4])
+    m_type = message[2]
+    
+    times.append ( message[1])
+    types.append ( m_type)
+    s_IPs.append ( message[3])
+    s_AS.append ( message[4])
     
     if m_type == 'A':
-        prefixes.append( mesage[5])
-        AS_PATH_list = mesage[6].split(' ')
+        prefixes.append( message[5])
+        AS_PATH_list = message[6].split(' ')
         AS_PATHs.append( AS_PATH_list)        
     elif m_type == 'W':
-        prefixes.append( mesage[5])
+        prefixes.append( message[5])
         AS_PATHs.append( [])     
     elif m_type == 'STATE':
         prefixes.append( '')
@@ -29,16 +32,16 @@ def dump_into_lists( update_lines, times, types, s_IPs, s_AS, prefixes, AS_PATHs
 
 
 # VARIABLES (pathlib)
-file_path = '/srv/agarcia/passive_mrai/bgp_updates/rrc00/updates.20180105.00'
+file_path = '/srv/agarcia/passive_mrai/bgp_updates/rrc00/updates.20180108.00'
 # bggdump_path = '/srv/alutu/bgpdump/bgpdump'
 bggdump_path = '/usr/local/bin/bgpdump'
-output_file_path = '/srv/agarcia/igutierrez/results/rrc00/rawdata_updates.'
+output_file_path = '/srv/agarcia/igutierrez/results/rrc00/raw_data_updates.'
   
 
 # VARIABLES (experiment)
 hop_size = 5
-from_date ='20180105.0000' 
-to_date = '20180105.0010'
+from_date ='20180108.0400' 
+to_date = '20180108.0410'
 
 from_min = int( from_date.split('.')[1][2:4])
 to_min = int( to_date.split('.')[1][2:4])
