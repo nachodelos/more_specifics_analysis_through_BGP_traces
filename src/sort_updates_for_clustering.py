@@ -11,7 +11,7 @@ import pandas as pd
 from_date ='20180108.0400' 
 to_date = '20180108.0410'
 input_file_path = '/srv/agarcia/igutierrez/results/rrc00/sort_2_clean_data.' + from_date + '-'+ to_date +'.xlsx'
-output_file_path = '/srv/agarcia/igutierrez/results/rrc00/raw_2_sort_data_for_clustering_updates.'
+output_file_path = '/srv/agarcia/igutierrez/results/rrc00/clean_2_sort_data_for_clustering_updates.'
 
 print ( 'Loading ' + input_file_path + '...')
 
