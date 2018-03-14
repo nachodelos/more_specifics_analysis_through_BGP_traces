@@ -52,8 +52,9 @@ df_prefix_list = df_prefix.tolist()
 df_monitor = df_updates['MONITOR']
 df_monitor_list = df_monitor.tolist()
 
-T = 240 # 4 minutes
+T = 4 # minutes
 
+print('Clustering into events... \n')
 events = get_events (df_monitor_list, df_prefix_list, df_time_list, T)
 
 df_events = pd.DataFrame({ 'EVENT_ID': events})
