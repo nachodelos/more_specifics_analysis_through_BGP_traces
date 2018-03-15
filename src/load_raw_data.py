@@ -35,10 +35,12 @@ print( "Stage 1: Load Raw Data\n")
 print( "---------------")
 
 # VARIABLES (pathlib)
-file_path = '/srv/agarcia/passive_mrai/bgp_updates/rrc00/updates.20180108.00'
+collector = 'rrc00'
+experiment = 'experiment_1'
+file_path = '/srv/agarcia/passive_mrai/bgp_updates/' + collector + '/updates.20180108.00'
 # bggdump_path = '/srv/alutu/bgpdump/bgpdump'
 bgpdump_path = '/usr/local/bin/bgpdump'
-output_file_path = '/srv/agarcia/igutierrez/results/rrc00/raw_data_updates.'
+output_file_path = '/srv/agarcia/igutierrez/results/' + experiment + '/1.load_data/' + collector + '_'
   
 
 # VARIABLES (experiment)

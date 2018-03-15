@@ -43,10 +43,12 @@ def get_affected_message_indexes( state_index, monitors, types, times):
     return affected_indexes
     
 # VARIABLES (experiment)
+collector = 'rrc00'
+experiment = 'experiment_1'
 from_date ='20180108.0400' 
 to_date = '20180108.0410'
-input_file_path = '/srv/agarcia/igutierrez/results/rrc00/raw_2_sort_data_for_cleaning_updates.' + from_date + '-'+ to_date +'.xlsx'
-output_file_path = '/srv/agarcia/igutierrez/results/rrc00/sort_2_clean_data.'
+input_file_path = '/srv/agarcia/igutierrez/results/' + experiment + '/2.sort_data_for_cleaning/' + collector + '_'  + from_date + '-'+ to_date +'.xlsx'
+output_file_path = '/srv/agarcia/igutierrez/results/' + experiment + '/3.data_cleaning/' + collector + '_' 
 
 print ( 'Loading ' + input_file_path + '...')
 
@@ -54,7 +56,6 @@ print ( 'Loading ' + input_file_path + '...')
 df = pd.read_excel( input_file_path)
 
 print( 'Data loaded successfully')
-print( df.head())
 
 print( '\nConverting timestamp to minutes...\n')
 
@@ -64,9 +65,6 @@ df_time_list = df_time_mm.tolist()
 
 df_type = df['TYPE']
 df_type_list = df_type.tolist()
-
-print( df_time_mm.head())
-print( df_time_mm.tail())
 
 state_indexes = get_STATE_indexes( df_type_list)
 print ( len(state_indexes)) 

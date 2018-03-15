@@ -12,10 +12,12 @@ print( "Stage 2: Sort updates for cleaning\n")
 print( "---------------")
 
 # VARIABLES (experiment)
+collector = 'rrc00'
+experiment = 'experiment_1'
 from_date ='20180108.0400' 
 to_date = '20180108.0410'
-input_file_path = '/srv/agarcia/igutierrez/results/rrc00/raw_data_updates.' + from_date + '-'+ to_date +'.xlsx'
-output_file_path = '/srv/agarcia/igutierrez/results/rrc00/raw_2_sort_data_for_cleaning_updates.'
+input_file_path = '/srv/agarcia/igutierrez/results/' + experiment + '/1.load_data/' + collector + '_' + from_date + '-'+ to_date +'.xlsx'
+output_file_path = '/srv/agarcia/igutierrez/results/' + experiment + '/2.sort_data_for_cleaning/' + collector + '_' 
 
 print ( 'Loading ' + input_file_path + '...')
 
