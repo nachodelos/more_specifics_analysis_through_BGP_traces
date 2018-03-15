@@ -32,10 +32,10 @@ elif  [ "$EXP_NAME" == "TEST" ];
 then
     # put here collector to use
     COLLECTOR_NAMES='rrc00'
-    EXP_NAME='0testDec17'
+    EXP_NAME='experiment1'
     # test everything
     if [ "$2" == "" ]; then
-        TEST_VECTOR="1 2 3 4 5 6"
+        TEST_VECTOR="1 2 3"
     else
         TEST_VECTOR=$2
     fi
@@ -53,7 +53,7 @@ else
     COLLECTOR_NAMES=$( ./experiment_manifest.py --collector_names $EXP_NAME )
 fi
 
-LOG_DIR="/srv/agarcia/beacon_mrai/ris_beacons/logs/"
+LOG_DIR="/srv/agarcia/igutierrez/logs/"
 
 # Be nice, do not execute more than K processes at the same time
 # max 20        - K=20 processes
@@ -78,19 +78,12 @@ function execute_command_for_each_collector () {
     done
 } 
 
-# download anchors
-C1_LOG_FILE="${LOG_DIR}$EXP_NAME.collector_raw_bgpelems.log"
+# load updates
+C1_LOG_FILE="${LOG_DIR}$EXP_NAME.load_raw_data.log"
 # C1 is expanded INSIDE execute_command... function, so $collector is properly expanded
-C1=' "./collector_raw_bgpelems.py --download $EXP_NAME,$collector,anchors " ' 
+C1=' "./load_raw_data.py " ' 
 # LOG_file need to be passed independently
 # Execute only if "1" is in TEST_VECTOR
-if [[ $TEST_VECTOR == *"1"* ]]; then
-    execute_command_for_each_collector "$C1" $C1_LOG_FILE
-fi 
-
-
-# download beacons
-C1=' "./collector_raw_bgpelems.py --download $EXP_NAME,$collector,beacons " ' 
 if [[ $TEST_VECTOR == *"1"* ]]; then
     execute_command_for_each_collector "$C1" $C1_LOG_FILE
 fi 
@@ -100,8 +93,8 @@ fi
 max 1
 
 # compute anchor and state activity timestamps 
-C2_LOG_FILE="${LOG_DIR}$EXP_NAME.collector_raw_bgpelems2anchor_noise_timestamp.log"
-C2=' " ./collector_raw_bgpelems2anchor_noise_timestamps.py $EXP_NAME $collector " '
+C2_LOG_FILE="${LOG_DIR}$EXP_NAME.sort_updates_for_cleaning.log"
+C2=' " ./sort_updates_for_cleaning.py " '
 if [[ $TEST_VECTOR == *"2"* ]]; then
     execute_command_for_each_collector "$C2" $C2_LOG_FILE
 fi 
@@ -111,41 +104,9 @@ fi
 max 1
 
 # compute noise_filtered_updates
-C3_LOG_FILE="${LOG_DIR}$EXP_NAME.collector_raw_bgpelems2noise_filtered_updates.log"
-# noise window: 300 seconds
-C3_W="300"
-C3=' " ./collector_raw_bgpelems2noise_filtered_updates.py $EXP_NAME,$collector,$C3_W " '
+C3_LOG_FILE="${LOG_DIR}$EXP_NAME.clean_data.log"
+C3=' " ./clean_data.py" '
 if [[ $TEST_VECTOR == *"3"* ]]; then
     execute_command_for_each_collector "$C3" $C3_LOG_FILE
-fi
-
-
-# wait all previous commands to finish
-max 1
-
-# Analyse if beacon and monitor clocks are synchronized
-C4_LOG_FILE="${LOG_DIR}$EXP_NAME.noise_filtered_updates2time_synchronization.log"
-C4_LOOK_AHEAD="300"
-C4=' "./noise_filtered_updates2time_synchronization.py $EXP_NAME $collector $C4_LOOK_AHEAD " '
-if [[ $TEST_VECTOR == *"4"* ]]; then
-    execute_command_for_each_collector "$C4" $C4_LOG_FILE
-fi
-
-max 1
-C5_LOG_FILE="${LOG_DIR}$EXP_NAME.noise_filtered_updates2RFD_updates.log"
-C5_RFD_THRESH="350"
-C5=' "./noise_filtered_updates2RFD_updates.py $EXP_NAME $collector $C5_RFD_THRESH " '
-
-if [[ $TEST_VECTOR == *"5"* ]]; then
-    execute_command_for_each_collector "$C5" $C5_LOG_FILE
-fi
-
-
-max 1
-C6_LOG_FILE="${LOG_DIR}$EXP_NAME.NoRFD_updates2timestamps_per_aspath.log"
-C6_RFD_THRESH="350"
-C6=' "./NoRFD_updates2timestamps_per_aspath.py $EXP_NAME $collector $C5_RFD_THRESH " '
-if [[ $TEST_VECTOR == *"6"* ]]; then
-    execute_command_for_each_collector "$C6" $C6_LOG_FILE
 fi
 
