@@ -41,6 +41,10 @@ def get_affected_message_indexes( state_index, monitors, types, times):
     affected_indexes = backward_affected_indexes + [state_index] + forward_affected_indexes   
 
     return affected_indexes
+
+print( "---------------")
+print( "Stage 3: Cleaning updates\n")
+print( "---------------")
     
 # VARIABLES (experiment)
 collector = 'rrc00'
