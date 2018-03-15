@@ -30,11 +30,14 @@ def dump_into_lists( update_lines, times, types, s_IPs, s_AS, prefixes, AS_PATHs
         prefixes.append( '')
         AS_PATHs.append( []) 
 
+print( "---------------")
+print( "Stage 1: Load Raw Data\n")
+print( "---------------")
 
 # VARIABLES (pathlib)
 file_path = '/srv/agarcia/passive_mrai/bgp_updates/rrc00/updates.20180108.00'
 # bggdump_path = '/srv/alutu/bgpdump/bgpdump'
-bggdump_path = '/usr/local/bin/bgpdump'
+bgpdump_path = '/usr/local/bin/bgpdump'
 output_file_path = '/srv/agarcia/igutierrez/results/rrc00/raw_data_updates.'
   
 
@@ -54,7 +57,7 @@ for ft in range( from_min, to_min + 1, hop_size):
     else:
         ft_str = str(ft)   
 
-    update_lines  += subprocess.check_output ([ bggdump_path, '-m', file_path + ft_str]).strip().split('\n')
+    update_lines  += subprocess.check_output ([ bgpdump_path, '-m', file_path + ft_str]).strip().split('\n')
     
 # DATA FIELDS
 times = []
