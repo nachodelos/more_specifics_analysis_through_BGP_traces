@@ -43,7 +43,7 @@ def get_affected_message_indexes( state_index, monitors, types, times):
     return affected_indexes
 
 print( "---------------")
-print( "Stage 3: Cleaning updates\n")
+print( "Stage 3: Cleaning updates")
 print( "---------------")
     
 # VARIABLES (experiment)
