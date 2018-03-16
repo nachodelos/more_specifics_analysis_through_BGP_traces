@@ -8,7 +8,7 @@ This is a way to separate data in a single file per collector
 import pandas as pd
 
 print( "---------------")
-print( "Stage 2: Sort updates for cleaning\n")
+print( "Stage 2: Sort updates for cleaning")
 print( "---------------")
 
 # VARIABLES (experiment)
