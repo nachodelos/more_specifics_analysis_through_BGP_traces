@@ -10,6 +10,23 @@ from argparse import ArgumentParser
 import experiment_manifest
 
 # FUNCTIONS
+def load_arguments():
+    
+    parser = ArgumentParser()
+    parser.add_argument('--load', help = '--load EXPERIMENT_NAME, COLLECTOR, eg: --load experiment_1,rrc0', default = '')
+    args = parser.parse_args()
+    
+    if args.load:
+        try:
+            return args.load.split(',')
+        except:
+            print('load_raw_data, main: ERROR, must be --download EXPERIMENT_NAME,COLLECTOR')
+            print('Received {}').format(args.load)
+            exit(1)
+    else:
+        print('load_raw_datas, main: Nothing requested... exiting')
+        exit(1)  
+
 def dump_into_lists( update_lines, times, types, s_IPs, s_AS, prefixes, AS_PATHs):  
      
     message = update_lines.split('|')
@@ -31,6 +48,7 @@ def dump_into_lists( update_lines, times, types, s_IPs, s_AS, prefixes, AS_PATHs
     elif m_type == 'STATE':
         prefixes.append( '')
         AS_PATHs.append( []) 
+           
         
 if (__name__ == '__main__'):
     
@@ -38,48 +56,24 @@ if (__name__ == '__main__'):
     print( "Stage 1: Load Raw Data")
     print( "---------------")
     
-    parser = ArgumentParser()
-    parser.add_argument('--load', help = '--load EXPERIMENT_NAME, COLLECTOR, eg: --load experiment_1,rrc0', default = '')
-    args = parser.parse_args()
-    
-    if args.load:
-        try:
-            exp_name, collector = args.load.split(',')
-        except:
-            print('load_raw_data, main: ERROR, must be --download EXPERIMENT_NAME,COLLECTOR')
-            print('Received {}').format(args.load)
-            exit(1)
-    else:
-        print('load_raw_datas, main: Nothing requested... exiting')
-        exit(1)
+    exp_name, collector = load_arguments()
         
     experiments = getattr(experiment_manifest, 'experiments')
     experiment = experiments[exp_name]
     
-    from_d = experiment [ 'initDay']
-    to_d = experiment [ 'endDay']
+    from_date = experiment [ 'initDay']
+    to_date = experiment [ 'endDay']
     ris_type = experiment [ 'RISType']
     
-    print ( exp_name)
-    print( collector)
-    print (from_d)
-    print (to_d)
-    print (ris_type)
-    
     # VARIABLES (pathlib)
-    collector = 'rrc00'
-    experiment = 'experiment_1'
     file_path = '/srv/agarcia/passive_mrai/bgp_updates/' + collector + '/updates.20180108.00'
     # bggdump_path = '/srv/alutu/bgpdump/bgpdump'
     bgpdump_path = '/usr/local/bin/bgpdump'
-    output_file_path = '/srv/agarcia/igutierrez/results/' + experiment + '/1.load_data/' + collector + '_'
-      
-    
-    # VARIABLES (experiment)
-    hop_size = 5
-    from_date ='20180108.0400' 
-    to_date = '20180108.0410'
-    
+    output_file_path = '/srv/agarcia/igutierrez/results/' + exp_name + '/1.load_data/' + collector + '_'
+
+    if (ris_type == 'rrc'):
+        hop_size = 5 
+ 
     from_min = int( from_date.split('.')[1][2:4])
     to_min = int( to_date.split('.')[1][2:4])
     
