@@ -6,6 +6,8 @@ This script dumps data into a proper struct to work more efficiency in Python
 """
 import subprocess
 import pandas as pd
+from argparse import ArgumentParser
+import experiment_manifest
 
 # FUNCTIONS
 def dump_into_lists( update_lines, times, types, s_IPs, s_AS, prefixes, AS_PATHs):  
@@ -31,10 +33,38 @@ def dump_into_lists( update_lines, times, types, s_IPs, s_AS, prefixes, AS_PATHs
         AS_PATHs.append( []) 
         
 if (__name__ == '__main__'):
-        
+    
     print( "---------------")
     print( "Stage 1: Load Raw Data")
     print( "---------------")
+    
+    parser = ArgumentParser()
+    parser.add_argument('--load', help = '--load EXPERIMENT_NAME, COLLECTOR, eg: --load experiment_1,rrc0', default = '')
+    args = parser.parse_args()
+    
+    if args.load:
+        try:
+            exp_name, collector = args.load.split(',')
+        except:
+            print('load_raw_data, main: ERROR, must be --download EXPERIMENT_NAME,COLLECTOR')
+            print('Received {}').format(args.load)
+            exit(1)
+    else:
+        print('load_raw_datas, main: Nothing requested... exiting')
+        exit(1)
+        
+    experiments = getattr(experiment_manifest, 'experiments')
+    experiment = experiments[exp_name]
+    
+    from_d = experiment [ 'initDay']
+    to_d = experiment [ 'endDay']
+    ris_type = experiment [ 'RISType']
+    
+    print ( exp_name)
+    print( collector)
+    print (from_d)
+    print (to_d)
+    print (ris_type)
     
     # VARIABLES (pathlib)
     collector = 'rrc00'

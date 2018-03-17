@@ -28,16 +28,13 @@ import calendar
 # - at which time prefixes are advertised/removed
 # - results directory, - here is the place in which I set absolute names for the directory
 experiments = {
-    'experiment_1': {
-        'description': 'Developing tests', 
+    'experiment_1': {'description': 'Developing tests', 
         'RISType': 'rrc',
-        'collectors': 'rrc00' 
         'initDay': '20180108.0400', # ts 1509494400,  
         'endDay': '20180108.0410', # 'endTime': 1509667200,      # two days later, Nov 3rd ...
         'resultDirectory': '/srv/agarcia/igutierrez/results/',
     },
-    'experiment_2': {
-        'description': 'Developing tests', 
+    'experiment_2': {'description': 'Developing tests', 
         'RISType': 'route_views', 
         'initDay': '20180108.0400', # ts 1509494400,  
         'endDay': '20180108.0410', # 'endTime': 1509667200,      # two days later, Nov 3rd ...

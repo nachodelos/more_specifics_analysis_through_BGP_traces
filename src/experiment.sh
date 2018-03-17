@@ -3,7 +3,7 @@
 TEST_VECTOR_HELP="
 run as\n
    nohup ./experiment.sh NAME_EXP \"TEST_VECTOR\" \&\n
-   nohup ./experiment.sh 0testDec17 \"2 3\" \&\n
+   nohup ./experiment.sh experiment_1 \"2 3\" \&\n
 \n
  special case: test only one collector: use TEST string\n
  ./experiment.sh TEST          # runs all tests\n
@@ -32,7 +32,7 @@ elif  [ "$EXP_NAME" == "TEST" ];
 then
     # put here collector to use
     COLLECTOR_NAMES='rrc00'
-    EXP_NAME='experiment1'
+    EXP_NAME='experiment_1'
     # test everything
     if [ "$2" == "" ]; then
         TEST_VECTOR="1 2 3"
@@ -81,7 +81,7 @@ function execute_command_for_each_collector () {
 # load updates
 C1_LOG_FILE="${LOG_DIR}$EXP_NAME.load_raw_data.log"
 # C1 is expanded INSIDE execute_command... function, so $collector is properly expanded
-C1=' "./load_raw_data.py " ' 
+C1=' "./load_raw_data.py --load $EXP_NAME,$collector " ' 
 # LOG_file need to be passed independently
 # Execute only if "1" is in TEST_VECTOR
 if [[ $TEST_VECTOR == *"1"* ]]; then
