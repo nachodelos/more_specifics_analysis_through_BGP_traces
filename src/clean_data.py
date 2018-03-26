@@ -42,52 +42,54 @@ def get_affected_message_indexes( state_index, monitors, types, times):
 
     return affected_indexes
 
-print( "---------------")
-print( "Stage 3: Cleaning updates")
-print( "---------------")
+if (__name__ == '__main__'):
+
+    print( "---------------")
+    print( "Stage 3: Cleaning updates")
+    print( "---------------")
+        
+    # VARIABLES (experiment)
+    collector = 'rrc00'
+    experiment = 'experiment_1'
+    from_date ='20180108.0400' 
+    to_date = '20180108.0410'
+    input_file_path = '/srv/agarcia/igutierrez/results/' + experiment + '/2.sort_data_for_cleaning/' + collector + '_'  + from_date + '-'+ to_date +'.xlsx'
+    output_file_path = '/srv/agarcia/igutierrez/results/' + experiment + '/3.data_cleaning/' + collector + '_' 
     
-# VARIABLES (experiment)
-collector = 'rrc00'
-experiment = 'experiment_1'
-from_date ='20180108.0400' 
-to_date = '20180108.0410'
-input_file_path = '/srv/agarcia/igutierrez/results/' + experiment + '/2.sort_data_for_cleaning/' + collector + '_'  + from_date + '-'+ to_date +'.xlsx'
-output_file_path = '/srv/agarcia/igutierrez/results/' + experiment + '/3.data_cleaning/' + collector + '_' 
-
-print ( 'Loading ' + input_file_path + '...')
-
-
-df = pd.read_excel( input_file_path)
-
-print( 'Data loaded successfully')
-
-print( '\nConverting timestamp to minutes...\n')
-
-df_time_s = df['TIME']
-df_time_mm = df_time_s // 60
-df_time_list = df_time_mm.tolist()
-
-df_type = df['TYPE']
-df_type_list = df_type.tolist()
-
-state_indexes = get_STATE_indexes( df_type_list)
-print ( len(state_indexes)) 
-
-df_monitor = df['MONITOR']
-df_monitor_list = df_monitor.tolist()
-
-affected_messages = []
-
-print ( '\nSearching affected messages...')
-
-df_clean = df
-
-for i in reversed( state_indexes):
-    affected_indexes = get_affected_message_indexes( i, df_monitor_list, df_type_list, df_time_list)
-    df_clean = df_clean.drop(df.index[affected_indexes])
-
-writer = pd.ExcelWriter(output_file_path + from_date + '-'+ to_date +'.xlsx', engine = 'xlsxwriter')
-df_clean.to_excel(writer, sheet_name = 'Sheet1') 
-writer.save()
-print ('Clean data saved')  
-
+    print ( 'Loading ' + input_file_path + '...')
+    
+    
+    df = pd.read_excel( input_file_path)
+    
+    print( 'Data loaded successfully')
+    
+    print( '\nConverting timestamp to minutes...\n')
+    
+    df_time_s = df['TIME']
+    df_time_mm = df_time_s // 60
+    df_time_list = df_time_mm.tolist()
+    
+    df_type = df['TYPE']
+    df_type_list = df_type.tolist()
+    
+    state_indexes = get_STATE_indexes( df_type_list)
+    print ( len(state_indexes)) 
+    
+    df_monitor = df['MONITOR']
+    df_monitor_list = df_monitor.tolist()
+    
+    affected_messages = []
+    
+    print ( '\nSearching affected messages...')
+    
+    df_clean = df
+    
+    for i in reversed( state_indexes):
+        affected_indexes = get_affected_message_indexes( i, df_monitor_list, df_type_list, df_time_list)
+        df_clean = df_clean.drop(df.index[affected_indexes])
+    
+    writer = pd.ExcelWriter(output_file_path + from_date + '-'+ to_date +'.xlsx', engine = 'xlsxwriter')
+    df_clean.to_excel(writer, sheet_name = 'Sheet1') 
+    writer.save()
+    print ('Clean data saved')  
+    
