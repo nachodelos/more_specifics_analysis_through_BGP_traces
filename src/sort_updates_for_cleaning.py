@@ -6,6 +6,7 @@ This is a way to separate data in a single file per collector
 
 """
 import pandas as pd
+import experiment_manifest as exp
 
 if (__name__ == '__main__'):
 
@@ -14,12 +15,16 @@ if (__name__ == '__main__'):
     print( "---------------")
     
     # VARIABLES (experiment)
-    collector = 'rrc00'
-    experiment = 'experiment_1'
-    from_date ='20180108.0400' 
-    to_date = '20180108.0410'
-    input_file_path = '/srv/agarcia/igutierrez/results/' + experiment + '/1.load_data/' + collector + '_' + from_date + '-'+ to_date +'.xlsx'
-    output_file_path = '/srv/agarcia/igutierrez/results/' + experiment + '/2.sort_data_for_cleaning/' + collector + '_' 
+    exp_name, collector = exp.load_arguments()
+        
+    experiments = getattr(exp, 'experiments')
+    experiment = experiments[exp_name]
+    
+    from_date = experiment [ 'initDay']
+    to_date = experiment [ 'endDay']
+    ris_type = experiment [ 'RISType']
+    input_file_path = '/srv/agarcia/igutierrez/results/' + exp_name + '/1.load_data/' + collector + '_' + from_date + '-'+ to_date +'.xlsx'
+    output_file_path = '/srv/agarcia/igutierrez/results/' + exp_name + '/2.sort_data_for_cleaning/' + collector + '_'  + from_date + '-'+ to_date +'.xlsx'
     
     print ( 'Loading ' + input_file_path + '...')
     
@@ -30,7 +35,7 @@ if (__name__ == '__main__'):
     df_sort = df_sort.reset_index()
     df_sort = df_sort.drop(['index'], axis=1)
     
-    writer = pd.ExcelWriter(output_file_path + from_date + '-'+ to_date +'.xlsx', engine = 'xlsxwriter')
+    writer = pd.ExcelWriter(output_file_path, engine = 'xlsxwriter')
     df_sort.to_excel(writer, sheet_name = 'Sheet1') 
     writer.save()
     

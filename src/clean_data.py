@@ -6,6 +6,7 @@ This script cleans data following several recomendations of the article "Quantif
 """
 
 import pandas as pd
+import experiment_manifest as exp
 
 # FUNCTIONS
 def get_STATE_indexes( types):
@@ -49,12 +50,17 @@ if (__name__ == '__main__'):
     print( "---------------")
         
     # VARIABLES (experiment)
-    collector = 'rrc00'
-    experiment = 'experiment_1'
-    from_date ='20180108.0400' 
-    to_date = '20180108.0410'
-    input_file_path = '/srv/agarcia/igutierrez/results/' + experiment + '/2.sort_data_for_cleaning/' + collector + '_'  + from_date + '-'+ to_date +'.xlsx'
-    output_file_path = '/srv/agarcia/igutierrez/results/' + experiment + '/3.data_cleaning/' + collector + '_' 
+    exp_name, collector = exp.load_arguments()
+        
+    experiments = getattr(exp, 'experiments')
+    experiment = experiments[exp_name]
+    
+    from_date = experiment [ 'initDay']
+    to_date = experiment [ 'endDay']
+    ris_type = experiment [ 'RISType']
+    
+    input_file_path = '/srv/agarcia/igutierrez/results/' + exp_name + '/2.sort_data_for_cleaning/' + collector + '_'  + from_date + '-'+ to_date +'.xlsx'
+    output_file_path = '/srv/agarcia/igutierrez/results/' + exp_name + '/3.data_cleaning/' + collector + '_'  + from_date + '-'+ to_date +'.xlsx'
     
     print ( 'Loading ' + input_file_path + '...')
     
@@ -88,7 +94,7 @@ if (__name__ == '__main__'):
         affected_indexes = get_affected_message_indexes( i, df_monitor_list, df_type_list, df_time_list)
         df_clean = df_clean.drop(df.index[affected_indexes])
     
-    writer = pd.ExcelWriter(output_file_path + from_date + '-'+ to_date +'.xlsx', engine = 'xlsxwriter')
+    writer = pd.ExcelWriter(output_file_path, engine = 'xlsxwriter')
     df_clean.to_excel(writer, sheet_name = 'Sheet1') 
     writer.save()
     print ('Clean data saved')  

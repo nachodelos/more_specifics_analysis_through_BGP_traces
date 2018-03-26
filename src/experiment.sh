@@ -94,7 +94,7 @@ max 1
 
 # compute anchor and state activity timestamps 
 C2_LOG_FILE="${LOG_DIR}$EXP_NAME.sort_updates_for_cleaning.log"
-C2=' " ./sort_updates_for_cleaning.py " '
+C2=' " ./sort_updates_for_cleaning.py --load $EXP_NAME,$collector " '
 if [[ $TEST_VECTOR == *"2"* ]]; then
     execute_command_for_each_collector "$C2" $C2_LOG_FILE
 fi 
@@ -105,7 +105,7 @@ max 1
 
 # compute noise_filtered_updates
 C3_LOG_FILE="${LOG_DIR}$EXP_NAME.clean_data.log"
-C3=' " ./clean_data.py" '
+C3=' " ./clean_data.py --load $EXP_NAME,$collector" '
 if [[ $TEST_VECTOR == *"3"* ]]; then
     execute_command_for_each_collector "$C3" $C3_LOG_FILE
 fi
