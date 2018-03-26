@@ -44,6 +44,23 @@ experiments = {
     # Put here more experiments, never remove any (to keep the record)
 }
 
+def load_arguments():
+    
+    parser = ArgumentParser()
+    parser.add_argument('--load', help = '--load EXPERIMENT_NAME, COLLECTOR, eg: --load experiment_1,rrc0', default = '')
+    args = parser.parse_args()
+    
+    if args.load:
+        try:
+            return args.load.split(',')
+        except:
+            print('load_raw_data, main: ERROR, must be --download EXPERIMENT_NAME,COLLECTOR')
+            print('Received {}').format(args.load)
+            exit(1)
+    else:
+        print('load_raw_datas, main: Nothing requested... exiting')
+        exit(1)  
+
 # guard_seconds: number of seconds to download in advance before the experiment
 GUARD_SECONDS = int(60*10)
 
