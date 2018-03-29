@@ -16,7 +16,7 @@ def get_STATE_indexes( types):
 			indexes.append( i)
 	return indexes		
 
-def get_affected_message_indexes( state_index, monitors, types, times):
+def get_affected_message_indexes_per_STATE( state_index, monitors, types, times):
     
     i = state_index
     
@@ -87,12 +87,14 @@ if (__name__ == '__main__'):
     affected_messages = []
     
     print ( '\nSearching affected messages...')
-    
+
     df_clean = df
+    affected_indexes = []
     
     for i in reversed( state_indexes):
-        affected_indexes = get_affected_message_indexes( i, df_monitor_list, df_type_list, df_time_list)
-        df_clean = df_clean.drop(df.index[affected_indexes])
+        affected_indexes += get_affected_message_indexes_per_STATE( i, df_monitor_list, df_type_list, df_time_list)
+
+    df_clean = df_clean.drop(df.index[affected_indexes])
     
     writer = pd.ExcelWriter(output_file_path, engine = 'xlsxwriter')
     df_clean.to_excel(writer, sheet_name = 'Sheet1') 
