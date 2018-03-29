@@ -6,8 +6,9 @@ This script dumps data into a proper struct to work more efficiency in Python
 """
 import subprocess
 import pandas as pd
- 
-# FUNCTIONS
+import experiment_manifest as exp
+
+# FUNCTIONS 
 def dump_into_lists( update_lines, times, types, s_IPs, s_AS, prefixes, AS_PATHs):  
      
     message = update_lines.split('|')
@@ -29,54 +30,66 @@ def dump_into_lists( update_lines, times, types, s_IPs, s_AS, prefixes, AS_PATHs
     elif m_type == 'STATE':
         prefixes.append( '')
         AS_PATHs.append( []) 
-
-
-# VARIABLES (pathlib)
-file_path = '/srv/agarcia/passive_mrai/bgp_updates/rrc00/updates.20180108.00'
-# bggdump_path = '/srv/alutu/bgpdump/bgpdump'
-bggdump_path = '/usr/local/bin/bgpdump'
-output_file_path = '/srv/agarcia/igutierrez/results/rrc00/raw_data_updates.'
-  
-
-# VARIABLES (experiment)
-hop_size = 5
-from_date ='20180108.0400' 
-to_date = '20180108.0410'
-
-from_min = int( from_date.split('.')[1][2:4])
-to_min = int( to_date.split('.')[1][2:4])
-
-update_lines = []
-
-for ft in range( from_min, to_min + 1, hop_size):
-    if(ft<10):
-        ft_str = '0'+str(ft)
-    else:
-        ft_str = str(ft)   
-
-    update_lines  += subprocess.check_output ([ bggdump_path, '-m', file_path + ft_str]).strip().split('\n')
+           
+        
+if (__name__ == '__main__'):
     
-# DATA FIELDS
-times = []
-types = []
-s_IPs = []
-s_AS = []
-prefixes = []
-AS_PATHs = []
+    print( "---------------")
+    print( "Stage 1: Load Raw Data")
+    print( "---------------")
     
-# dump data into several lists
-for i in range(len(update_lines)):       
-    dump_into_lists(update_lines[i], times, types, s_IPs, s_AS, prefixes, AS_PATHs)       
+    exp_name, collector = exp.load_arguments()
+        
+    experiments = getattr(exp, 'experiments')
+    experiment = experiments[exp_name]
     
-print (' Data saved as lists!')
-df_update = pd.DataFrame({ 'TIME' : times, 'TYPE': types, 'MONITOR': s_IPs, 'AS': s_AS,'PREFIX': prefixes, 'AS_PATH': AS_PATHs})
-print (' Data Frame created!')
-writer = pd.ExcelWriter(output_file_path + from_date + '-'+ to_date +'.xlsx', engine = 'xlsxwriter')
-df_update.to_excel(writer, sheet_name = 'Sheet1', index = False)
-writer.save()
-print(' Excel File saved!')
+    from_date = experiment [ 'initDay']
+    to_date = experiment [ 'endDay']
+    ris_type = experiment [ 'RISType']
+    
+    # VARIABLES (pathlib)
+    file_path = '/srv/agarcia/passive_mrai/bgp_updates/' + collector + '/updates.20180108.00'
+    # bggdump_path = '/srv/alutu/bgpdump/bgpdump'
+    bgpdump_path = '/usr/local/bin/bgpdump'
+    output_file_path = '/srv/agarcia/igutierrez/results/' + exp_name + '/1.load_data/' + collector + '_' + from_date + '-'+ to_date +'.xlsx'
 
+    if (ris_type == 'rrc'):
+        hop_size = 5 
+ 
+    from_min = int( from_date.split('.')[1][2:4])
+    to_min = int( to_date.split('.')[1][2:4])
     
+    update_lines = []
     
-            
-            
+    for ft in range( from_min, to_min + 1, hop_size):
+        if(ft<10):
+            ft_str = '0'+str(ft)
+        else:
+            ft_str = str(ft)   
+    
+        update_lines  += subprocess.check_output ([ bgpdump_path, '-m', file_path + ft_str]).strip().split('\n')
+        
+    # DATA FIELDS
+    times = []
+    types = []
+    s_IPs = []
+    s_AS = []
+    prefixes = []
+    AS_PATHs = []
+        
+    # dump data into several lists
+    for i in range(len(update_lines)):       
+        dump_into_lists(update_lines[i], times, types, s_IPs, s_AS, prefixes, AS_PATHs)       
+        
+    print (' Data saved as lists!')
+    df_update = pd.DataFrame({ 'TIME' : times, 'TYPE': types, 'MONITOR': s_IPs, 'AS': s_AS,'PREFIX': prefixes, 'AS_PATH': AS_PATHs})
+    print (' Data Frame created!')
+    writer = pd.ExcelWriter(output_file_path, engine = 'xlsxwriter')
+    df_update.to_excel(writer, sheet_name = 'Sheet1', index = False)
+    writer.save()
+    print(' Excel File saved!')
+    
+        
+        
+                
+                
