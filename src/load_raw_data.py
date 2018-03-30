@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
-This script dumps data into a proper struct to work more efficiency in Python
+This script dumps data into a proper struct to work more efficiently in Python
 
 """
 import subprocess
