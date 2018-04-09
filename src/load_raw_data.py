@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
-This script dumps data into a proper struct to work more efficiently in Python
+This script dumps data into a proper struct to work more efficiently in Python. In addition you can visualize the corresponding Data with Excel
 
 """
 import subprocess
