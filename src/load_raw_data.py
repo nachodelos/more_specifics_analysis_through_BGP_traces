@@ -84,48 +84,66 @@ if (__name__ == '__main__'):
 
     update_lines = []
 
-    for dd in range(from_day, to_day + 1, 1):
+    for month in range(from_month, to_month + 1, 1):
 
-        dd_str = format_number_to_string(dd)
+        month_str = format_number_to_string(month)
 
-        if from_day == to_day:
-            from_hour_aux = from_hour
-            to_hour_aux = to_hour
-        elif to_day > from_day:
-            if dd == from_day:
+        if from_month == to_month:
+            from_day_aux = from_day
+            to_day_aux = to_day
+        elif to_month > from_month:
+            if month == from_month:
+                from_day_aux = from_month
+                to_day_aux = monthrange(from_year, from_month)[1]
+            elif from_month < month < to_month:
+                from_day_aux = 1
+                to_day_aux = monthrange(from_year, from_month)[1]
+            elif month == to_month:
+                from_day_aux = 1
+                to_day_aux = to_day
+
+        for dd in range(from_day, to_day + 1, 1):
+
+            dd_str = format_number_to_string(dd)
+
+            if from_day == to_day:
                 from_hour_aux = from_hour
-                to_hour_aux = 23
-            elif from_day < dd < to_day:
-                from_hour_aux = 0
-                to_hour_aux = 0
-            elif dd == to_day:
-                from_hour_aux = 0
                 to_hour_aux = to_hour
+            elif to_day > from_day:
+                if dd == from_day:
+                    from_hour_aux = from_hour
+                    to_hour_aux = 23
+                elif from_day < dd < to_day:
+                    from_hour_aux = 0
+                    to_hour_aux = 0
+                elif dd == to_day:
+                    from_hour_aux = 0
+                    to_hour_aux = to_hour
 
-        for hh in range(from_hour_aux, to_hour_aux + 1, 1):
+            for hh in range(from_hour_aux, to_hour_aux + 1, 1):
 
-            hh_str = format_number_to_string(hh)
+                hh_str = format_number_to_string(hh)
 
-            if from_hour == to_hour:
-                from_min_aux = from_min
-                to_min_aux = to_min
-            else:
-                if hh == from_hour and dd == from_day:
+                if from_hour == to_hour:
                     from_min_aux = from_min
-                    to_min_aux = 56
-                elif hh == to_hour and dd == to_day:
-                    from_min_aux = 0
                     to_min_aux = to_min
                 else:
-                    from_min_aux = 0
-                    to_min_aux = 56
+                    if hh == from_hour and dd == from_day:
+                        from_min_aux = from_min
+                        to_min_aux = 56
+                    elif hh == to_hour and dd == to_day:
+                        from_min_aux = 0
+                        to_min_aux = to_min
+                    else:
+                        from_min_aux = 0
+                        to_min_aux = 56
 
-            for mm in range(from_min_aux, to_min_aux + 1, 5):
-                mm_str = format_number_to_string(mm)
-                print(file_path + 'updates.201801' + dd_str + '.' + hh_str + mm_str)
-                update_lines += subprocess.check_output(
-                    [bgpdump_path, '-m', file_path + 'updates.201801' + dd_str + '.' + hh_str + mm_str]).strip().split(
-                    '\n')
+                for mm in range(from_min_aux, to_min_aux + 1, 5):
+                    mm_str = format_number_to_string(mm)
+                    print(file_path + 'updates.201801' + dd_str + '.' + hh_str + mm_str)
+                    update_lines += subprocess.check_output(
+                        [bgpdump_path, '-m', file_path + 'updates.201801' + dd_str + '.' + hh_str + mm_str]).strip().split(
+                        '\n')
 
     # DATA FIELDS
     times = []
