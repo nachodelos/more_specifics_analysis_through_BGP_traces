@@ -90,7 +90,7 @@ if (__name__ == '__main__'):
 
         if from_year == to_year:
             from_month_aux = from_month
-            to_month_aux = to_year
+            to_month_aux = to_month
         else:
             if year == from_year:
                 from_month_aux = from_month
@@ -106,16 +106,15 @@ if (__name__ == '__main__'):
 
             month_str = format_number_to_string(month)
 
-            if from_year == to_year:
-                if from_month == to_month:
-                    from_day_aux = from_day
-                    to_day_aux = to_day
+            if from_year == to_year and from_month == to_month:
+                from_day_aux = from_day
+                to_day_aux = to_day
             elif year == from_year:
                 from_day_aux = from_day
                 to_day_aux = monthrange(year, month)[1]
             elif year == to_year:
                 from_day_aux = 1
-                to_day_aux = to_year
+                to_day_aux = to_day
             else:
                 from_day_aux = 1
                 to_day_aux = monthrange(from_year, from_month)[1]
