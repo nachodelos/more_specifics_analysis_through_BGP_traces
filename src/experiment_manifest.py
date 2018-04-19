@@ -27,18 +27,21 @@ import calendar
 #   endDay is date for the FIRST DAY without experiment. I.e. endDay > initDay
 # - at which time prefixes are advertised/removed
 # - results directory, - here is the place in which I set absolute names for the directory
+# - resultFormat could be .csv or .xlsx The execution is briefer with .csv but it is less efficient in terms of storage
 experiments = {
     'experiment_1': {'description': 'Developing tests', 
         'RISType': 'rrc',
-        'initDay': '20180108.0400', # ts 1509494400,  
-        'endDay': '20180108.0410', # 'endTime': 1509667200,      # two days later, Nov 3rd ...
+        'initDay': '20171230.2350', # ts 1509494400,
+        'endDay': '20180101.2350', # 'endTime': 1509667200,      # two days later, Nov 3rd ...
         'resultDirectory': '/srv/agarcia/igutierrez/results/',
+        'resultFormat': '.xlsx'
     },
     'experiment_2': {'description': 'Developing tests', 
         'RISType': 'route_views', 
-        'initDay': '20180108.0400', # ts 1509494400,  
+        'initDay': '20180108.0400', # ts 1509494400,
         'endDay': '20180108.0410', # 'endTime': 1509667200,      # two days later, Nov 3rd ...
-        'resultDirectory': '/srv/agarcia/igutierrez/results/',    
+        'resultDirectory': '/srv/agarcia/igutierrez/results/',
+        'resultFormat': '.csv'
     
     },
     # Put here more experiments, never remove any (to keep the record)
@@ -58,7 +61,7 @@ def load_arguments():
             print('Received {}').format(args.load)
             exit(1)
     else:
-        print('load_raw_datas, main: Nothing requested... exiting')
+        print('load_raw_data, main: Nothing requested... exiting')
         exit(1)  
 
 # guard_seconds: number of seconds to download in advance before the experiment
