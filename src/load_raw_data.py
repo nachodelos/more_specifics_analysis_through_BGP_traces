@@ -43,7 +43,7 @@ def dump_into_lists(update_lines, times, types, s_IPs, s_AS, prefixes, AS_PATHs)
         AS_PATHs.append([])
 
 
-if (__name__ == '__main__'):
+if __name__ == '__main__':
 
     print("---------------")
     print("Stage 1: Load Raw Data")
