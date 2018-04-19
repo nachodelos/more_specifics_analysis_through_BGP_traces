@@ -9,7 +9,7 @@ import pandas as pd
 import experiment_manifest as exp
 import file_manager as f
 
-if (__name__ == '__main__'):
+if __name__ == '__main__':
 
     print( "---------------")
     print( "Stage 2: Sort updates for cleaning")
@@ -30,13 +30,17 @@ if (__name__ == '__main__'):
     input_file_path = result_directory + exp_name + '/1.load_data/' + collector + '_' + from_date + '-' + to_date + file_ext
     output_file_path = result_directory + exp_name + '/2.sort_data_for_cleaning/' + collector + '_' + from_date + '-'+ to_date + file_ext
 
-    print ( 'Loading ' + input_file_path + '...')
-    
-    df = pd.read_excel( input_file_path)
-    
-    df_sort = df.sort_values( by=['MONITOR', 'TIME'])
-    
-    df_sort = df_sort.reset_index()
-    df_sort = df_sort.drop(['index'], axis=1)
-    
-    f.save_file(df_sort, file_ext, output_file_path)
+    write_flag = f.overwrite_file(output_file_path)
+
+    if write_flag == 1:
+
+        print ( 'Loading ' + input_file_path + '...')
+
+        df = pd.read_excel( input_file_path)
+
+        df_sort = df.sort_values( by=['MONITOR', 'TIME'])
+
+        df_sort = df_sort.reset_index()
+        df_sort = df_sort.drop(['index'], axis=1)
+
+        f.save_file(df_sort, file_ext, output_file_path)

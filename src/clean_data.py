@@ -29,16 +29,16 @@ def get_affected_message_indexes_per_STATE(state_index, monitors, types, times):
     forward_affected_indexes = []
     monitor = monitors[state_index]
 
-    while (i + 1 < len(monitors) and monitors[i + 1] == monitor and times[i + 1] <= final_time):
+    while i + 1 < len(monitors) and monitors[i + 1] == monitor and times[i + 1] <= final_time:
         i = i + 1
-        if (types[i] != 'STATE'):
+        if types[i] != 'STATE':
             forward_affected_indexes.append(i)
 
     backward_affected_indexes = []
 
-    while (i - 1 > 0 and monitors[i - 1] == monitor and times[i - 1] <= initial_time):
+    while i - 1 > 0 and monitors[i - 1] == monitor and times[i - 1] <= initial_time:
         i = i - 1
-        if (types[i] != 'STATE'):
+        if types[i] != 'STATE':
             backward_affected_indexes.append(i)
 
     affected_indexes = backward_affected_indexes + [state_index] + forward_affected_indexes
@@ -46,7 +46,7 @@ def get_affected_message_indexes_per_STATE(state_index, monitors, types, times):
     return affected_indexes
 
 
-if (__name__ == '__main__'):
+if __name__ == '__main__':
 
     print("---------------")
     print("Stage 3: Cleaning updates")
@@ -67,39 +67,43 @@ if (__name__ == '__main__'):
     input_file_path = result_directory + exp_name + '/2.sort_data_for_cleaning/' + collector + '_' + from_date + '-' + to_date + file_ext
     output_file_path = result_directory + exp_name + '/3.data_cleaning/' + collector + '_' + from_date + '-' + to_date + file_ext
 
-    print ('Loading ' + input_file_path + '...')
+    write_flag = f.overwrite_file(output_file_path)
 
-    df = pd.read_excel(input_file_path)
+    if write_flag == 1:
 
-    print('Data loaded successfully')
+        print ('Loading ' + input_file_path + '...')
 
-    print('\nConverting timestamp to minutes...\n')
+        df = pd.read_excel(input_file_path)
 
-    df_time_s = df['TIME']
-    df_time_mm = df_time_s // 60
-    df_time_list = df_time_mm.tolist()
+        print('Data loaded successfully')
 
-    df_type = df['TYPE']
-    df_type_list = df_type.tolist()
+        print('\nConverting timestamp to minutes...\n')
 
-    state_indexes = get_state_indexes(df_type_list)
-    print (len(state_indexes))
+        df_time_s = df['TIME']
+        df_time_mm = df_time_s // 60
+        df_time_list = df_time_mm.tolist()
 
-    df_monitor = df['MONITOR']
-    df_monitor_list = df_monitor.tolist()
+        df_type = df['TYPE']
+        df_type_list = df_type.tolist()
 
-    affected_messages = []
+        state_indexes = get_state_indexes(df_type_list)
+        print (len(state_indexes))
 
-    print ('\nSearching affected messages...')
+        df_monitor = df['MONITOR']
+        df_monitor_list = df_monitor.tolist()
 
-    df_clean = df
-    affected_indexes = []
+        affected_messages = []
 
-    for i in reversed(state_indexes):
-        affected_indexes += get_affected_message_indexes_per_STATE(i, df_monitor_list, df_type_list, df_time_list)
+        print ('\nSearching affected messages...')
 
-    df_clean = df_clean.drop(df.index[affected_indexes])
+        df_clean = df
+        affected_indexes = []
 
-    f.save_file(df_clean, file_ext, output_file_path)
+        for i in reversed(state_indexes):
+            affected_indexes += get_affected_message_indexes_per_STATE(i, df_monitor_list, df_type_list, df_time_list)
 
-    print ('Clean data saved')
+        df_clean = df_clean.drop(df.index[affected_indexes])
+
+        f.save_file(df_clean, file_ext, output_file_path)
+
+        print ('Clean data saved')
