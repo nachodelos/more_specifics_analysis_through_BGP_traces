@@ -25,7 +25,7 @@ def overwrite_file(output_file_path):
     if os.path.isfile(output_file_path):
         write_flag = None
 
-        while write_flag == None:
+        while write_flag is None:
             answer = raw_input('Output file already exists. Would you like to overwrite it? (y/n)\n')
             if answer == 'y':
                 write_flag = 1
