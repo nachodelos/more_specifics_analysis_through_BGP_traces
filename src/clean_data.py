@@ -7,6 +7,7 @@ This script cleans data following several recomendations of the article "Quantif
 
 import pandas as pd
 import experiment_manifest as exp
+import file_manager as f
 
 
 # FUNCTIONS
@@ -60,9 +61,11 @@ if (__name__ == '__main__'):
     from_date = experiment['initDay']
     to_date = experiment['endDay']
     ris_type = experiment['RISType']
+    result_directory = experiment['resultDirectory']
+    file_ext = experiment['resultFormat']
 
-    input_file_path = '/srv/agarcia/igutierrez/results/' + exp_name + '/2.sort_data_for_cleaning/' + collector + '_' + from_date + '-' + to_date + '.xlsx'
-    output_file_path = '/srv/agarcia/igutierrez/results/' + exp_name + '/3.data_cleaning/' + collector + '_' + from_date + '-' + to_date + '.xlsx'
+    input_file_path = result_directory + exp_name + '/2.sort_data_for_cleaning/' + collector + '_' + from_date + '-' + to_date + file_ext
+    output_file_path = result_directory + exp_name + '/3.data_cleaning/' + collector + '_' + from_date + '-' + to_date + file_ext
 
     print ('Loading ' + input_file_path + '...')
 
@@ -97,7 +100,6 @@ if (__name__ == '__main__'):
 
     df_clean = df_clean.drop(df.index[affected_indexes])
 
-    writer = pd.ExcelWriter(output_file_path, engine='xlsxwriter')
-    df_clean.to_excel(writer, sheet_name='Sheet1')
-    writer.save()
+    f.save_file(df_clean, file_ext, output_file_path)
+
     print ('Clean data saved')

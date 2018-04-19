@@ -4,10 +4,12 @@
 This script dumps data into a proper struct to work more efficiently in Python. In addition you can visualize the corresponding Data with Excel
 
 """
+
 import subprocess
 import pandas as pd
 import experiment_manifest as exp
 from calendar import monthrange
+import file_manager as f
 
 
 # FUNCTIONS
@@ -55,14 +57,15 @@ if (__name__ == '__main__'):
     from_date = experiment['initDay']
     to_date = experiment['endDay']
     ris_type = experiment['RISType']
+    result_directory = experiment['resultDirectory']
+    file_ext = experiment['resultFormat']
 
     # VARIABLES (pathlib)
     file_path = '/srv/agarcia/passive_mrai/bgp_updates/' + collector + '/'
     # bgpdump_path = '/srv/alutu/bgpdump/bgpdump'
     bgpdump_path = '/usr/local/bin/bgpdump'
-    output_file_path = '/srv/agarcia/igutierrez/results/' + exp_name + '/1.load_data/' + collector + '_' + from_date + '-' + to_date + '.xlsx'
 
-    if (ris_type == 'rrc'):
+    if ris_type == 'rrc':
         hop_size = 5
 
     from_min = int(from_date.split('.')[1][2:4])
@@ -84,6 +87,7 @@ if (__name__ == '__main__'):
 
     update_lines = []
 
+    # Loop for reading every file between from_date and to_date every hop_size minutes
     for year in range(from_year, to_year + 1, 1):
 
         year_str = format_number_to_string(year)
@@ -155,7 +159,7 @@ if (__name__ == '__main__'):
                             from_min_aux = 0
                             to_min_aux = 56
 
-                    for mm in range(from_min_aux, to_min_aux + 1, 5):
+                    for mm in range(from_min_aux, to_min_aux + 1, hop_size):
                         mm_str = format_number_to_string(mm)
                         print(file_path + 'updates.' + year_str + month_str + dd_str + '.' + hh_str + mm_str)
                         update_lines += subprocess.check_output(
@@ -176,10 +180,9 @@ if (__name__ == '__main__'):
         dump_into_lists(update_lines[i], times, types, s_IPs, s_AS, prefixes, AS_PATHs)
 
     print (' Data saved as lists!')
-    df_update = pd.DataFrame(
-        {'TIME': times, 'TYPE': types, 'MONITOR': s_IPs, 'AS': s_AS, 'PREFIX': prefixes, 'AS_PATH': AS_PATHs})
+
+    df_update = pd.DataFrame({'TIME': times, 'TYPE': types, 'MONITOR': s_IPs, 'AS': s_AS, 'PREFIX': prefixes, 'AS_PATH': AS_PATHs})
     print (' Data Frame created!')
-    writer = pd.ExcelWriter(output_file_path, engine='xlsxwriter')
-    df_update.to_excel(writer, sheet_name='Sheet1', index=False)
-    writer.save()
-    print(' Excel File saved!')
+
+    output_file_path = result_directory + exp_name + '/1.load_data/' + collector + '_' + from_date + '-' + to_date + file_ext
+    f.save_file(df_update, file_ext, output_file_path)
