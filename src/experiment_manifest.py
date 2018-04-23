@@ -29,30 +29,35 @@ import calendar
 # - results directory, - here is the place in which I set absolute names for the directory
 # - resultFormat could be .csv or .xlsx The execution is briefer with .csv but it is less efficient in terms of storage
 experiments = {
-    'experiment_1': {'description': 'Developing tests', 
-        'RISType': 'rrc',
-        'initDay': '20171230.2350', # ts 1509494400,
-        'endDay': '20180101.2350', # 'endTime': 1509667200,      # two days later, Nov 3rd ...
-        'resultDirectory': '/srv/agarcia/igutierrez/results/',
-        'resultFormat': '.xlsx'
-    },
-    'experiment_2': {'description': 'Developing tests', 
-        'RISType': 'route_views', 
-        'initDay': '20180108.0400', # ts 1509494400,
-        'endDay': '20180108.0410', # 'endTime': 1509667200,      # two days later, Nov 3rd ...
-        'resultDirectory': '/srv/agarcia/igutierrez/results/',
-        'resultFormat': '.csv'
-    
-    },
+    'experiment_1': {'description': 'Developing tests',
+                     'initDay': '20171230.2350',  # ts 1509494400,
+                     'endDay': '20180101.2350',  # 'endTime': 1509667200,      # two days later, Nov 3rd ...
+                     'resultDirectory': '/srv/agarcia/igutierrez/results/',
+                     'resultFormat': '.xlsx'
+                     },
+    'experiment_2': {'description': 'Developing tests',
+                     'initDay': '20180108.0400',  # ts 1509494400,
+                     'endDay': '20180108.0410',  # 'endTime': 1509667200,      # two days later, Nov 3rd ...
+                     'resultDirectory': '/srv/agarcia/igutierrez/results/',
+                     'resultFormat': '.csv'
+
+                     },
+    'experiment_3': {'description': 'Developing tests',
+                     'initDay': '20160530.0400',  # ts 1509494400,
+                     'endDay': '20160530.2345',  # 'endTime': 1509667200,      # two days later, Nov 3rd ...
+                     'resultDirectory': '/srv/agarcia/igutierrez/results/',
+                     'resultFormat': '.csv'
+
+                     },
     # Put here more experiments, never remove any (to keep the record)
 }
 
+
 def load_arguments():
-    
     parser = ArgumentParser()
-    parser.add_argument('--load', help = '--load EXPERIMENT_NAME, COLLECTOR, eg: --load experiment_1,rrc0', default = '')
+    parser.add_argument('--load', help='--load EXPERIMENT_NAME, COLLECTOR, eg: --load experiment_1,rrc0', default='')
     args = parser.parse_args()
-    
+
     if args.load:
         try:
             return args.load.split(',')
@@ -62,10 +67,13 @@ def load_arguments():
             exit(1)
     else:
         print('load_raw_data, main: Nothing requested... exiting')
-        exit(1)  
+        exit(1)
 
-# guard_seconds: number of seconds to download in advance before the experiment
-GUARD_SECONDS = int(60*10)
+    # guard_seconds: number of seconds to download in advance before the experiment
+
+
+GUARD_SECONDS = int(60 * 10)
+
 
 # If it is not ok, exists. Otherwise does nothing.
 def check_exp_name_ok(expName):
@@ -75,6 +83,7 @@ def check_exp_name_ok(expName):
     if experiments.get(expName) == None:
         print('Unknown experiment name: {}\n').format(expName)
         exit(1)
+
 
 # Check if starting time is aligned with 00:00:00
 # def _check_exp_starting_time_alignment(expName):
@@ -97,51 +106,20 @@ def day2timestamp(fullday):
     year = int(fullday[:4])
     month = int(fullday[4:6])
     day = int(fullday[6:8])
-    return calendar.timegm((year, month, day,0, 0, 0, 0))
+    return calendar.timegm((year, month, day, 0, 0, 0, 0))
+
 
 def timestamp2day(timestamp):
     return strftime('%Y%m%d', gmtime(timestamp))
-    
 
-# classless methods:
-#   experiment_beacons(expName): returns list of beacons - remember, 'beacon' in wide sense.
-# can return list of tuples 
-#   [('pref1', 'pref2', 'pref3'), ('pref4', 'pref5')]
-# This means that the first ANCHOR corresponds to the first tuple returned, and so on
-def experiment_beacons(expName):
-    check_exp_name_ok(expName) 
-    if 'ris_beacons' == experiments[expName]['beaconType']:
-        # position [0] is beacon
-        return [x[0] for x in ris_beacon_anchor_list]
-    # complete with other experiment types
-
-def experiment_anchors(expName):
-    check_exp_name_ok(expName) 
-    if 'ris_beacons' == experiments[expName]['beaconType']:
-        # position [1] is anchor
-        return [x[1] for x in ris_beacon_anchor_list]
-    # complete with other experiment types
-
-# for risBeacons, it is a single prefix
-# for other experiment types, can be a list
-def beacon_corresponding_to_anchor(expName, anchor):
-    check_exp_name_ok(expName) 
-    if 'ris_beacons' == experiments[expName]['beaconType']:
-        for pair in ris_beacon_anchor_list:
-            if pair[1] == anchor:
-                return pair[0]
-
-
-def beacon_type(expName):
-    check_exp_name_ok(expName)
-    return experiments[expName]['beaconType']
 
 def experiment_init_day(expName):
-    check_exp_name_ok(expName) 
+    check_exp_name_ok(expName)
     return experiments[expName]['initDay']
 
+
 def experiment_end_day(expName):
-    check_exp_name_ok(expName) 
+    check_exp_name_ok(expName)
     # endDay must be strictly greater than initDay
     if experiments[expName]['endDay'] <= experiments[expName]['initDay']:
         print('experiment_manifest: initDay is equal or higher than endDay, stopping')
@@ -150,58 +128,34 @@ def experiment_end_day(expName):
 
 
 def experiment_number_days(expName):
-    check_exp_name_ok(expName) 
-    return (day2timestamp(experiments[expName]['endDay']) - day2timestamp(experiments[expName]['initDay']))/(24*60*60)
-
-# returns ORDERED list of UNIX timestamps starting times [78873, 78970, ...].
-def experiment_beacon_adv_times(expName): 
     check_exp_name_ok(expName)
-    if 'risBeaconsSch' == experiments[expName]['updateSchedule']:
-        return ris_beacon_adv_times(day2timestamp(experiments[expName]['initDay']), day2timestamp(experiments[expName]['endDay']))
-    # other experiment types
+    return (day2timestamp(experiments[expName]['endDay']) - day2timestamp(experiments[expName]['initDay'])) / (
+                24 * 60 * 60)
 
-def experiment_beacon_wd_times(expName):
-    check_exp_name_ok(expName)
-    if 'risBeaconsSch' == experiments[expName]['updateSchedule']:
-        return ris_beacon_wd_times(day2timestamp(experiments[expName]['initDay']), day2timestamp(experiments[expName]['endDay']))
-    # other experiment types
 
-# Returns (init_interval, end_interval, A/W type)
-# [(1509494400, 1509501600, 'A'), (1509501600, 1509508800, 'W'), (1509508800, 1509516000, 'A')...]
-def experiment_beacon_adv_wd_times(exp_name): 
-    # timestamp_list = experiment_beacon_adv_times(exp_name)
-    timestamp_list =[]
-    for interval in experiment_beacon_adv_times(exp_name): 
-        timestamp_list.append((interval[0], interval[1], 'A'))
-    for interval in experiment_beacon_wd_times(exp_name):
-        timestamp_list.append((interval[0], interval[1], 'W'))
-    return sorted(timestamp_list)
 # beacon_experiment_interval(exp_name): [(ts at which beacon is adv, ts at which it is wd), ()]
 
 
 def _print_experiment_info(expName):
     check_exp_name_ok(expName)
-    print('\nExperiment: {}').format(expName) 
-    print('  Beacons: {}').format(experiment_beacons(expName))
-    print('  Anchors: {}').format(experiment_anchors(expName))
+    print('\nExperiment: {}').format(expName)
     print('  Starting day (UNIX Timestamp): {}').format(experiment_init_day(expName))
     print('  End day (UNIX Timestamp): {}').format(experiment_end_day(expName))
     print('  ... number of days: {}').format(experiment_number_days(expName))
-    print('  Adv times: {}').format(experiment_beacon_adv_times(expName))
-    print('  Wd times: {}').format(experiment_beacon_wd_times(expName))
-    print('  Ad + Wd times: {}').format(experiment_beacon_adv_wd_times(expName))
+
 
 # returns list of active collectors at the time of the experiment
 def experiment_collectors(expName):
     full_day = experiment_init_day(expName)
     year = int(full_day[:4])
-    collector_list=generate_collector_names(year)
+    collector_list = generate_collector_names(year)
 
-    collector_str =''
-    #return in string 'route-views.eqix' 'route-views.isc' ..
+    collector_str = ''
+    # return in string 'route-views.eqix' 'route-views.isc' ..
     for collector in collector_list:
         collector_str += collector + " "
     return collector_str
+
 
 ###
 ### DIRECTORIES and FILENAMES
@@ -212,10 +166,11 @@ def experiment_collectors(expName):
 # '/srv/agarcia/beacon_mrai/ris_beacons/'
 def experiment_base_result_dir(expName):
     check_exp_name_ok(expName)
-    target_dir = experiments[expName]['resultDirectory'] + experiments[expName]['beaconType'] + '/' 
+    target_dir = experiments[expName]['resultDirectory'] + experiments[expName]['beaconType'] + '/'
     if not os.path.isdir(target_dir):
         raise Exception('Base result directory ' + target_dir + ' did not existed. Check if the system is ok, etc.')
     return target_dir
+
 
 # '/srv/agarcia/beacon_mrai/ris_beacons/0testDic17/'
 def experiment_result_dir(expName):
@@ -224,6 +179,7 @@ def experiment_result_dir(expName):
     if not os.path.isdir(target_dir):
         os.makedirs(target_dir)
     return target_dir
+
 
 # experiment_last_dir('0testDec17', '/noise_filtered_updates/')
 # Returns (and creates if it didn't existed)
@@ -235,6 +191,7 @@ def experiment_last_dir(expName, result_string):
         print('Creating directory {}').format(directory)
         os.mkdir(directory)
     return directory
+
 
 # experiment_last_dir('0testDec17', 'rfd_updates/', 'rrc00')
 # Returns (and creates if it didn't existed)
@@ -288,7 +245,8 @@ def interval_number_and_type(expName, update):
     else:
         # define for other types
         raise Exception('only defined for RIS')
-    
+
+
 # returns (interval_number, init_time of interval, interval_type 'A'/'W)
 def ris_interval_number_and_type(expName, update):
     # could use prefix in the future (for non-ris beacons)
@@ -301,14 +259,16 @@ def ris_interval_number_and_type(expName, update):
         if timestamp >= interval[0] and timestamp < interval[1]:
             return (interval_number, interval[0], interval[2])
         interval_number += 1
-    
+
     # not found in any interval is an error
-    print('noise_filtered_updates2RFD_updates: ERROR, timestamp {} could not be found in interval, exiting').format(timestamp)
+    print('noise_filtered_updates2RFD_updates: ERROR, timestamp {} could not be found in interval, exiting').format(
+        timestamp)
     exit(1)
+
 
 def ris_interval_init_timestamp(expName, interval_number):
     interval_list = experiment_beacon_adv_wd_times(expName)
-    return(interval_list[interval_number][0])
+    return (interval_list[interval_number][0])
 
 
 def interval_init_timestamp(expName, interval_number):
@@ -316,17 +276,20 @@ def interval_init_timestamp(expName, interval_number):
         return ris_interval_init_timestamp(expName, interval_number)
     else:
         # define for other types
-        raise Exception('only defined for RIS')    
+        raise Exception('only defined for RIS')
 
-# CLI
+    # CLI
+
+
 # --print_test 0testDec17
 if __name__ == "__main__":
     parser = ArgumentParser()
     # ./experiment_manifest.py --print_test 0testDec17
     parser.add_argument("--print_test", help='--print_test TEST_NAME, prints info for considered test', default='')
-    parser.add_argument("--collector_names", help='--collector_names TEST_NAME, returns collector names active for considered test (to be used by shell)')
+    parser.add_argument("--collector_names",
+                        help='--collector_names TEST_NAME, returns collector names active for considered test (to be used by shell)')
 
-    args= parser.parse_args()
+    args = parser.parse_args()
 
     if args.print_test:
         _print_experiment_info(args.print_test)

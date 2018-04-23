@@ -60,7 +60,6 @@ if __name__ == '__main__':
 
     from_date = experiment['initDay']
     to_date = experiment['endDay']
-    ris_type = experiment['RISType']
     result_directory = experiment['resultDirectory']
     file_ext = experiment['resultFormat']
 
