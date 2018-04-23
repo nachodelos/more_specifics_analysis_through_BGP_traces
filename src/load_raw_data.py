@@ -56,7 +56,6 @@ if __name__ == '__main__':
 
     from_date = experiment['initDay']
     to_date = experiment['endDay']
-    ris_type = experiment['RISType']
     result_directory = experiment['resultDirectory']
     file_ext = experiment['resultFormat']
 
@@ -68,10 +67,15 @@ if __name__ == '__main__':
 
     write_flag = f.overwrite_file(output_file_path)
 
-    if write_flag == 1:
+    if 'rrc' in collector:
+        hop_size = 5
+    elif 'route-views' in collector:
+        hop_size = 15
+    else:
+        print('Collector type could not be recognised. Finishing execution...')
+        write_flag == 0
 
-        if ris_type == 'rrc':
-            hop_size = 5
+    if write_flag == 1:
 
         from_min = int(from_date.split('.')[1][2:4])
         to_min = int(to_date.split('.')[1][2:4])
@@ -186,7 +190,8 @@ if __name__ == '__main__':
 
         print (' Data saved as lists!')
 
-        df_update = pd.DataFrame({'TIME': times, 'TYPE': types, 'MONITOR': s_IPs, 'AS': s_AS, 'PREFIX': prefixes, 'AS_PATH': AS_PATHs})
+        df_update = pd.DataFrame(
+            {'TIME': times, 'TYPE': types, 'MONITOR': s_IPs, 'AS': s_AS, 'PREFIX': prefixes, 'AS_PATH': AS_PATHs})
         print (' Data Frame created!')
 
         f.save_file(df_update, file_ext, output_file_path)
