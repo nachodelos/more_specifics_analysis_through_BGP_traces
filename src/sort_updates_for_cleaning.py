@@ -26,18 +26,21 @@ if __name__ == '__main__':
     result_directory = experiment['resultDirectory']
     file_ext = experiment['resultFormat']
 
+    step_dir = '/2.sort_data_for_cleaning'
+    exp.per_step_dir(exp_name, step_dir)
+
     input_file_path = result_directory + exp_name + '/1.load_data/' + collector + '_' + from_date + '-' + to_date + file_ext
-    output_file_path = result_directory + exp_name + '/2.sort_data_for_cleaning/' + collector + '_' + from_date + '-'+ to_date + file_ext
+    output_file_path = result_directory + exp_name + step_dir + '/' + collector + '_' + from_date + '-'+ to_date + file_ext
 
     write_flag = f.overwrite_file(output_file_path)
 
     if write_flag == 1:
 
-        print ( 'Loading ' + input_file_path + '...')
+        print ( 'Loading ' + input_file_path + ' ...')
 
         df = pd.read_excel( input_file_path)
 
-        df_sort = df.sort_values( by=['MONITOR', 'TIME'])
+        df_sort = df.sort_values(by=['MONITOR', 'TIME'])
 
         df_sort = df_sort.reset_index()
         df_sort = df_sort.drop(['index'], axis=1)

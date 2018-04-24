@@ -43,10 +43,10 @@ experiments = {
 
                      },
     'experiment_3': {'description': 'Developing tests',
-                     'initDay': '20160530.0400',  # ts 1509494400,
-                     'endDay': '20160530.2345',  # 'endTime': 1509667200,      # two days later, Nov 3rd ...
+                     'initDay': '20171230.2350',  # ts 1509494400,
+                     'endDay': '20171231.0500',  # 'endTime': 1509667200,      # two days later, Nov 3rd ...
                      'resultDirectory': '/srv/agarcia/igutierrez/results/',
-                     'resultFormat': '.csv'
+                     'resultFormat': '.xlsx'
 
                      },
     # Put here more experiments, never remove any (to keep the record)
@@ -99,7 +99,7 @@ def check_exp_name_ok(expName):
 
 # fullday ~ '20171101'
 def day2timestamp(fullday):
-    if len(fullday) != 8:
+    if len(fullday) != 13:
         print('day2timestamp, wrong day format')
         exit(1)
 
@@ -132,16 +132,21 @@ def experiment_number_days(expName):
     return (day2timestamp(experiments[expName]['endDay']) - day2timestamp(experiments[expName]['initDay'])) / (
                 24 * 60 * 60)
 
+def experiment_result_format(expName):
+    check_exp_name_ok(expName)
+    return experiments[expName]['resultFormat']
+
 
 # beacon_experiment_interval(exp_name): [(ts at which beacon is adv, ts at which it is wd), ()]
 
 
-def _print_experiment_info(expName):
+def print_experiment_info(expName):
     check_exp_name_ok(expName)
     print('\nExperiment: {}').format(expName)
     print('  Starting day (UNIX Timestamp): {}').format(experiment_init_day(expName))
     print('  End day (UNIX Timestamp): {}').format(experiment_end_day(expName))
     print('  ... number of days: {}').format(experiment_number_days(expName))
+    print('  Result Format : {}').format(experiment_result_format(expName))
 
 
 # returns list of active collectors at the time of the experiment
@@ -163,19 +168,19 @@ def experiment_collectors(expName):
 
 # This directory must exist beforehand (this is the way to check that the code
 # is running in the appropriate system)
-# '/srv/agarcia/beacon_mrai/ris_beacons/'
+# '/srv/agarcia/igutierrez/results/'
 def experiment_base_result_dir(expName):
     check_exp_name_ok(expName)
-    target_dir = experiments[expName]['resultDirectory'] + experiments[expName]['beaconType'] + '/'
+    target_dir = experiments[expName]['resultDirectory']
     if not os.path.isdir(target_dir):
         raise Exception('Base result directory ' + target_dir + ' did not existed. Check if the system is ok, etc.')
     return target_dir
 
 
-# '/srv/agarcia/beacon_mrai/ris_beacons/0testDic17/'
+# '/srv/agarcia/igutierrez/results/experiment_1/'
 def experiment_result_dir(expName):
     check_exp_name_ok(expName)
-    target_dir = experiment_base_result_dir(expName) + expName + '/'
+    target_dir = experiment_base_result_dir(expName) + expName
     if not os.path.isdir(target_dir):
         os.makedirs(target_dir)
     return target_dir
@@ -195,10 +200,11 @@ def experiment_last_dir(expName, result_string):
 
 # experiment_last_dir('0testDec17', 'rfd_updates/', 'rrc00')
 # Returns (and creates if it didn't existed)
-# '/srv/agarcia/beacon_mrai/ris_beacons/0testDic17/rrc00/rfd_updates/'
-def per_collector_dir(expName, result_string, collector):
-    result_dir = experiment_last_dir(expName, result_string)
-    directory = result_dir + collector + '/'
+# '/srv/agarcia/igutierrez/results/experiment_1/step/'
+# step e.g.: 1.load_data
+def per_step_dir(expName, step):
+    result_dir = experiment_result_dir(expName)
+    directory = result_dir + step + '/'
     if not os.path.isdir(directory):
         print('Creating directory {}').format(directory)
         os.mkdir(directory)
@@ -209,7 +215,7 @@ def per_collector_dir(expName, result_string, collector):
 # generates a filename of the type
 #   .../short_rfd/rrc00.20171101.2.csv
 # NOT to use with raw_bgpelems
-def filename_csv_per_collector(expName, collector, last_dir):
+def filename_per_collector(expName, collector, last_dir, file_ext):
     base_dir = experiment_result_dir(expName)
     starting_day = experiment_init_day(expName)
     number_days = experiment_number_days(expName)
@@ -217,7 +223,7 @@ def filename_csv_per_collector(expName, collector, last_dir):
     if not os.path.isdir(directory):
         print('Creating directory {}').format(directory)
         os.mkdir(directory)
-    return directory + collector + '.' + starting_day + '.' + str(number_days) + '.csv'
+    return directory + collector + '.' + starting_day + '.' + str(number_days) + file_ext
 
 
 # Writes README file in last_dir, with the contents of readme_text
@@ -292,7 +298,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.print_test:
-        _print_experiment_info(args.print_test)
+        print_experiment_info(args.print_test)
     if args.collector_names:
         print(experiment_collectors(args.collector_names))
     else:

@@ -50,6 +50,7 @@ if __name__ == '__main__':
     print("---------------")
 
     exp_name, collector = exp.load_arguments()
+    exp.print_experiment_info(exp_name)
 
     experiments = getattr(exp, 'experiments')
     experiment = experiments[exp_name]
@@ -63,7 +64,9 @@ if __name__ == '__main__':
     file_path = '/srv/agarcia/passive_mrai/bgp_updates/' + collector + '/'
     # bgpdump_path = '/srv/alutu/bgpdump/bgpdump'
     bgpdump_path = '/usr/local/bin/bgpdump'
-    output_file_path = result_directory + exp_name + '/1.load_data/' + collector + '_' + from_date + '-' + to_date + file_ext
+    step_dir = '/1.load_data'
+    exp.per_step_dir(exp_name, step_dir)
+    output_file_path = result_directory + exp_name + step_dir + '/' + collector + '_' + from_date + '-' + to_date + file_ext
 
     write_flag = f.overwrite_file(output_file_path)
 

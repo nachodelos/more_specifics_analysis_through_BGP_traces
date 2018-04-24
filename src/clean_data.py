@@ -63,8 +63,11 @@ if __name__ == '__main__':
     result_directory = experiment['resultDirectory']
     file_ext = experiment['resultFormat']
 
+    step_dir = '/3.data_cleaning'
+    exp.per_step_dir(exp_name, step_dir)
+
     input_file_path = result_directory + exp_name + '/2.sort_data_for_cleaning/' + collector + '_' + from_date + '-' + to_date + file_ext
-    output_file_path = result_directory + exp_name + '/3.data_cleaning/' + collector + '_' + from_date + '-' + to_date + file_ext
+    output_file_path = result_directory + exp_name + step_dir + '/' + collector + '_' + from_date + '-' + to_date + file_ext
 
     write_flag = f.overwrite_file(output_file_path)
 
