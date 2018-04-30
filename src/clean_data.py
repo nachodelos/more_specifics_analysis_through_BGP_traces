@@ -75,7 +75,7 @@ if __name__ == '__main__':
 
         print ('Loading ' + input_file_path + '...')
 
-        df = pd.read_excel(input_file_path)
+        df = f.read_file(file_ext, input_file_path)
 
         print('Data loaded successfully')
 
