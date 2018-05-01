@@ -46,9 +46,14 @@ experiments = {
                      'initDay': '20171230.2350',  # ts 1509494400,
                      'endDay': '20171231.0500',  # 'endTime': 1509667200,      # two days later, Nov 3rd ...
                      'resultDirectory': '/srv/agarcia/igutierrez/results/',
-                     'resultFormat': '.xlsx'
+                     'resultFormat': '.csv'
 
                      },
+    'experiment_4': {'description': 'Developing tests',
+                     'initDay': '20171230.2350',  # ts 1509494400,
+                     'endDay': '20180101.2350',  # 'endTime': 1509667200,      # two days later, Nov 3rd ...
+                     'resultDirectory': '/srv/agarcia/igutierrez/results/',
+                     'resultFormat': '.xlsx'},
     # Put here more experiments, never remove any (to keep the record)
 }
 
@@ -146,7 +151,7 @@ def print_experiment_info(expName):
     print('  Starting day (UNIX Timestamp): {}').format(experiment_init_day(expName))
     print('  End day (UNIX Timestamp): {}').format(experiment_end_day(expName))
     print('  ... number of days: {}').format(experiment_number_days(expName))
-    print('  Result Format : {}').format(experiment_result_format(expName))
+    print('  Result Format : {} \n').format(experiment_result_format(expName))
 
 
 # returns list of active collectors at the time of the experiment
