@@ -62,7 +62,7 @@ if __name__ == '__main__':
 
     # VARIABLES (pathlib)
     file_path = '/srv/agarcia/passive_mrai/bgp_updates/' + collector + '/'
-    # bgpdump_path = '/srv/alutu/bgpdump/bgpdump'
+    # bgpdump_path = '/srv/agarcia/TFM/bgpdump'
     bgpdump_path = '/usr/local/bin/bgpdump'
     step_dir = '/1.load_data'
     exp.per_step_dir(exp_name, step_dir)
@@ -94,8 +94,6 @@ if __name__ == '__main__':
 
         from_year = int(from_date.split('.')[0][0:4])
         to_year = int(to_date.split('.')[0][0:4])
-
-        print(from_date + ' ' + to_date)
 
         update_lines = []
 
