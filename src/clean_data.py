@@ -7,6 +7,7 @@ This script cleans data following several recomendations of the article "Quantif
 
 import pandas as pd
 import experiment_manifest as exp
+import file_manager as f
 
 
 # FUNCTIONS
@@ -28,16 +29,16 @@ def get_affected_message_indexes_per_STATE(state_index, monitors, types, times):
     forward_affected_indexes = []
     monitor = monitors[state_index]
 
-    while (i + 1 < len(monitors) and monitors[i + 1] == monitor and times[i + 1] <= final_time):
+    while i + 1 < len(monitors) and monitors[i + 1] == monitor and times[i + 1] <= final_time:
         i = i + 1
-        if (types[i] != 'STATE'):
+        if types[i] != 'STATE':
             forward_affected_indexes.append(i)
 
     backward_affected_indexes = []
 
-    while (i - 1 > 0 and monitors[i - 1] == monitor and times[i - 1] <= initial_time):
+    while i - 1 > 0 and monitors[i - 1] == monitor and times[i - 1] <= initial_time:
         i = i - 1
-        if (types[i] != 'STATE'):
+        if types[i] != 'STATE':
             backward_affected_indexes.append(i)
 
     affected_indexes = backward_affected_indexes + [state_index] + forward_affected_indexes
@@ -45,7 +46,7 @@ def get_affected_message_indexes_per_STATE(state_index, monitors, types, times):
     return affected_indexes
 
 
-if (__name__ == '__main__'):
+if __name__ == '__main__':
 
     print("---------------")
     print("Stage 3: Cleaning updates")
@@ -59,45 +60,52 @@ if (__name__ == '__main__'):
 
     from_date = experiment['initDay']
     to_date = experiment['endDay']
-    ris_type = experiment['RISType']
+    result_directory = experiment['resultDirectory']
+    file_ext = experiment['resultFormat']
 
-    input_file_path = '/srv/agarcia/igutierrez/results/' + exp_name + '/2.sort_data_for_cleaning/' + collector + '_' + from_date + '-' + to_date + '.xlsx'
-    output_file_path = '/srv/agarcia/igutierrez/results/' + exp_name + '/3.data_cleaning/' + collector + '_' + from_date + '-' + to_date + '.xlsx'
+    step_dir = '/3.data_cleaning'
+    exp.per_step_dir(exp_name, step_dir)
 
-    print ('Loading ' + input_file_path + '...')
+    input_file_path = result_directory + exp_name + '/2.sort_data_for_cleaning/' + collector + '_' + from_date + '-' + to_date + file_ext
+    output_file_path = result_directory + exp_name + step_dir + '/' + collector + '_' + from_date + '-' + to_date + file_ext
 
-    df = pd.read_excel(input_file_path)
+    write_flag = f.overwrite_file(output_file_path)
 
-    print('Data loaded successfully')
+    if write_flag == 1:
 
-    print('\nConverting timestamp to minutes...\n')
+        print ('Loading ' + input_file_path + '...')
 
-    df_time_s = df['TIME']
-    df_time_mm = df_time_s // 60
-    df_time_list = df_time_mm.tolist()
+        df = f.read_file(file_ext, input_file_path)
 
-    df_type = df['TYPE']
-    df_type_list = df_type.tolist()
+        print('Data loaded successfully')
 
-    state_indexes = get_state_indexes(df_type_list)
-    print (len(state_indexes))
+        print('\nConverting timestamp to minutes...\n')
 
-    df_monitor = df['MONITOR']
-    df_monitor_list = df_monitor.tolist()
+        df_time_s = df['TIME']
+        df_time_mm = df_time_s // 60
+        df_time_list = df_time_mm.tolist()
 
-    affected_messages = []
+        df_type = df['TYPE']
+        df_type_list = df_type.tolist()
 
-    print ('\nSearching affected messages...')
+        state_indexes = get_state_indexes(df_type_list)
+        print (len(state_indexes))
 
-    df_clean = df
-    affected_indexes = []
+        df_monitor = df['MONITOR']
+        df_monitor_list = df_monitor.tolist()
 
-    for i in reversed(state_indexes):
-        affected_indexes += get_affected_message_indexes_per_STATE(i, df_monitor_list, df_type_list, df_time_list)
+        affected_messages = []
 
-    df_clean = df_clean.drop(df.index[affected_indexes])
+        print ('\nSearching affected messages...')
 
-    writer = pd.ExcelWriter(output_file_path, engine='xlsxwriter')
-    df_clean.to_excel(writer, sheet_name='Sheet1')
-    writer.save()
-    print ('Clean data saved')
+        df_clean = df
+        affected_indexes = []
+
+        for i in reversed(state_indexes):
+            affected_indexes += get_affected_message_indexes_per_STATE(i, df_monitor_list, df_type_list, df_time_list)
+
+        df_clean = df_clean.drop(df.index[affected_indexes])
+
+        f.save_file(df_clean, file_ext, output_file_path)
+
+        print ('Clean data saved')
