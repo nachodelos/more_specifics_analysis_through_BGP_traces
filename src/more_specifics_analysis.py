@@ -60,8 +60,14 @@ if __name__ == "__main__":
     write_flag = f.overwrite_file(output_file_path)
 
     if write_flag == 1:
-        print ('Loading ' + input_file_path + '...')
+        print 'Loading ' + input_file_path + '...'
 
-        df = f.read_file(file_ext, input_file_path)
+        df_clean = f.read_file(file_ext, input_file_path)
 
-        print('Data loaded successfully')
+        print 'Data loaded successfully'
+
+        df_IPv4_updates, df_IPv6_updates = separate_IPv_types(df_clean)
+
+        print 'Data separated for analysis'
+
+        
