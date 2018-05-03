@@ -9,6 +9,31 @@ This script analyses several more specifics features from captured data from any
 import experiment_manifest as exp
 import file_manager as f
 
+
+def get_IPv_type_indexes(df):
+    df_prefix = df['PREFIX']
+
+    ipv6_updates_indexes = []
+    ipv4_updates_indexes = []
+
+    for i in range(len(df)):
+        if ':' in df_prefix[i]:
+            ipv6_updates_indexes.append(i)
+        else:
+            ipv4_updates_indexes.append(i)
+
+    return ipv4_updates_indexes, ipv6_updates_indexes
+
+
+def separate_IPv_types(df):
+    ipv4_updates_indexes, ipv6_updates_indexes = get_IPv_type_indexes(df)
+
+    df_ipv6_updates = df.drop(df.index[ipv4_updates_indexes])
+    df_ipv4_updates = df.drop(df.index[ipv6_updates_indexes])
+
+    return df_ipv4_updates, df_ipv6_updates
+
+
 if __name__ == "__main__":
 
     print("---------------")
