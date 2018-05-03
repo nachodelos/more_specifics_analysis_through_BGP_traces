@@ -10,6 +10,7 @@ import pandas as pd
 import experiment_manifest as exp
 from calendar import monthrange
 import file_manager as f
+import os
 
 
 # FUNCTIONS
@@ -171,7 +172,11 @@ if __name__ == '__main__':
 
                         for mm in range(from_min_aux, to_min_aux + 1, hop_size):
                             mm_str = format_number_to_string(mm)
-                            print(file_path + 'updates.' + year_str + month_str + dd_str + '.' + hh_str + mm_str)
+
+                            if not os.path.isfile(file_path + 'updates.' + year_str + month_str + dd_str + '.' + hh_str + mm_str):
+                                os.system('curl http://data.ris.ripe.net/' + collector + '/' + year_str + '.' + month_str + '/' + 'updates.' + year_str + month_str + dd_str + '.' + hh_str + mm_str + '.gz' + ' -o ' + file_path + 'updates.' + year_str + month_str + dd_str + '.' + hh_str + mm_str + '.gz')
+                                os.system('gzip -d ' + file_path + 'updates.' + year_str + month_str + dd_str + '.' + hh_str + mm_str + '.gz')
+
                             update_lines += subprocess.check_output(
                                 [bgpdump_path, '-m',
                                  file_path + 'updates.' + year_str + month_str + dd_str + '.' + hh_str + mm_str]).strip().split(
