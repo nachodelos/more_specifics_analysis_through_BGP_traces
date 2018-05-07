@@ -69,6 +69,22 @@ def separate_IPv_types(df):
     return df_ipv4_updates, df_ipv6_updates
 
 
+def get_prefixes_seen_per_monitor(df):
+
+    prefixes_per_monitor = {}
+    df_monitor = df['MONITOR']
+    df_prefix = df['PREFIX']
+
+    for i in range(len(df)):
+        if df_monitor[i] not in prefixes_per_monitor:
+            prefixes_per_monitor[df_monitor[i]] = [df_prefix[i]]
+        else:
+            if df_prefix[i] not in prefixes_per_monitor[df_monitor[i]]:
+                prefixes_per_monitor[df_monitor[i]].append(df_prefix[i])
+
+    return prefixes_per_monitor
+
+
 if __name__ == "__main__":
 
     print("---------------")
@@ -114,5 +130,8 @@ if __name__ == "__main__":
         print 'Total Advises: {}'.format(len(df_IPv4_updates) + len(df_IPv6_updates))
         print 'IPv4 updates: {}'.format(len(df_IPv4_updates))
         print 'IPv6 updates: {}'.format(len(df_IPv6_updates))
+
+        pref_IPv4 = get_prefixes_seen_per_monitor(df_IPv4_updates)
+        pref_IPv6 = get_prefixes_seen_per_monitor(df_IPv6_updates)
 
 
