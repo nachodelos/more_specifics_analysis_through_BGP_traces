@@ -10,6 +10,31 @@ import experiment_manifest as exp
 import file_manager as f
 
 
+def get_withdraw_indexes(df):
+    df_type = df['TYPE']
+
+    updates_withdraw_indexes = []
+
+    for i in range(len(df)):
+        if df_type[i] == 'W':
+            updates_withdraw_indexes.append(i)
+    print "Encontrados {} W updates".format(len(updates_withdraw_indexes))
+
+    return updates_withdraw_indexes
+
+
+# Delete W updates and reset index for resulting DataFrame
+def delete_withdraw_updates(df):
+    updates_withdraw_indexes = get_withdraw_indexes(df)
+
+    df_advises_updates = df
+    df_advises_updates = df_advises_updates.drop(df.index[updates_withdraw_indexes])
+    df_advises_updates = df_advises_updates.reset_index()
+    df_advises_updates = df_advises_updates.drop(['index'], axis=1)
+
+    return df_advises_updates
+
+
 def get_IPv_type_indexes(df):
     df_prefix = df['PREFIX']
 
@@ -17,8 +42,10 @@ def get_IPv_type_indexes(df):
     ipv4_updates_indexes = []
 
     for i in range(len(df)):
+        # IPv6 filter
         if ':' in df_prefix[i]:
             ipv6_updates_indexes.append(i)
+        # IPv4 filter
         else:
             ipv4_updates_indexes.append(i)
 
@@ -28,8 +55,16 @@ def get_IPv_type_indexes(df):
 def separate_IPv_types(df):
     ipv4_updates_indexes, ipv6_updates_indexes = get_IPv_type_indexes(df)
 
+    # Delete corresponding entries
     df_ipv6_updates = df.drop(df.index[ipv4_updates_indexes])
     df_ipv4_updates = df.drop(df.index[ipv6_updates_indexes])
+
+    # Reset indexes
+    df_ipv6_updates = df_ipv6_updates.reset_index()
+    df_ipv6_updates = df_ipv6_updates.drop(['index'], axis=1)
+
+    df_ipv4_updates = df_ipv4_updates.reset_index()
+    df_ipv4_updates = df_ipv4_updates.drop(['index'], axis=1)
 
     return df_ipv4_updates, df_ipv6_updates
 
@@ -60,14 +95,24 @@ if __name__ == "__main__":
     write_flag = f.overwrite_file(output_file_path)
 
     if write_flag == 1:
-        print 'Loading ' + input_file_path + '...'
+        print "Loading " + input_file_path + "..."
 
         df_clean = f.read_file(file_ext, input_file_path)
 
-        print 'Data loaded successfully'
+        print "Data loaded successfully"
 
-        df_IPv4_updates, df_IPv6_updates = separate_IPv_types(df_clean)
+        print "Deleting withdraw updates..."
+
+        df_advises = delete_withdraw_updates(df_clean)
+
+        print "Splitting {} advises of {} ...".format(len(df_advises), len(df_clean))
+
+        df_IPv4_updates, df_IPv6_updates = separate_IPv_types(df_advises)
 
         print 'Data separated for analysis'
+        print 'Total Updates: {}'.format(len(df_clean))
+        print 'Total Advises: {}'.format(len(df_IPv4_updates) + len(df_IPv6_updates))
+        print 'IPv4 updates: {}'.format(len(df_IPv4_updates))
+        print 'IPv6 updates: {}'.format(len(df_IPv6_updates))
 
-        
+
