@@ -8,6 +8,7 @@ This script analyses several more specifics features from captured data from any
 
 import experiment_manifest as exp
 import file_manager as f
+import pandas as pd
 
 
 def get_withdraw_indexes(df):
@@ -113,7 +114,14 @@ if __name__ == "__main__":
     result_directory = experiment['resultDirectory']
     file_ext = experiment['resultFormat']
 
+    # Directories creation
     step_dir = '/4.more_specifics_analysis'
+    exp.per_step_dir(exp_name, step_dir)
+
+    step_dir = '/4.more_specifics_analysis/IPv4'
+    exp.per_step_dir(exp_name, step_dir)
+
+    step_dir = '/4.more_specifics_analysis/IPv6'
     exp.per_step_dir(exp_name, step_dir)
 
     input_file_path = result_directory + exp_name + '/3.data_cleaning/' + collector + '_' + from_date + '-' + to_date + file_ext
@@ -127,7 +135,6 @@ if __name__ == "__main__":
         df_clean = f.read_file(file_ext, input_file_path)
 
         print "Data loaded successfully"
-
         print "Deleting withdraw updates..."
 
         df_advises = delete_withdraw_updates(df_clean)
@@ -142,7 +149,20 @@ if __name__ == "__main__":
         print 'IPv4 updates: {}'.format(len(df_IPv4_updates))
         print 'IPv6 updates: {}'.format(len(df_IPv6_updates))
 
+        # IPv4 Analysis
         pref_IPv4 = get_prefixes_seen_per_monitor(df_IPv4_updates)
+        monitors_IPv4, pref_IPv4_counts = count_prefixes_per_monitor(pref_IPv4)
+
+        step_dir = '/4.more_specifics_analysis/IPv4'
+        output_file_path = result_directory + exp_name + step_dir + '/' + collector + '_' + from_date + '-' + to_date + file_ext
+        df_results_count = pd.DataFrame({'MONITOR': monitors_IPv4, 'PREF_COUNT': pref_IPv4_counts})
+        f.save_file(df_results_count, file_ext, output_file_path)
+
+        # IPv6 Analysis
         pref_IPv6 = get_prefixes_seen_per_monitor(df_IPv6_updates)
+        monitors_IPv6, pref_IPv6_counts = count_prefixes_per_monitor(pref_IPv6)
 
-
+        step_dir = '/4.more_specifics_analysis/IPv6'
+        output_file_path = result_directory + exp_name + step_dir + '/' + collector + '_' + from_date + '-' + to_date + file_ext
+        df_results_count = pd.DataFrame({'MONITOR': monitors_IPv6, 'PREF_COUNT': pref_IPv6_counts})
+        f.save_file(df_results_count, file_ext, output_file_path)
