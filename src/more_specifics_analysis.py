@@ -85,6 +85,17 @@ def get_prefixes_seen_per_monitor(df):
     return prefixes_per_monitor
 
 
+def count_prefixes_per_monitor(dic):
+    monitors = []
+    count_pref_per_monitor = []
+
+    for monitor in dic:
+        monitors.append(monitor)
+        count_pref_per_monitor.append(len(dic[monitor]))
+
+    return monitors, count_pref_per_monitor
+
+
 if __name__ == "__main__":
 
     print("---------------")
