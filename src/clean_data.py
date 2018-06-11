@@ -5,7 +5,6 @@ This script cleans data following several recomendations of the article "Quantif
 
 """
 
-import pandas as pd
 import experiment_manifest as exp
 import file_manager as f
 

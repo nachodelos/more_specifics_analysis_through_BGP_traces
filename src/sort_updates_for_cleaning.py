@@ -5,7 +5,6 @@ This script sorts updates per collector by MONITOR and TIME fields
 This is a way to separate data in a single file per collector
 
 """
-import pandas as pd
 import experiment_manifest as exp
 import file_manager as f
 
