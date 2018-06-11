@@ -26,8 +26,8 @@ def dump_into_lists(update_lines, times, types, s_IPs, s_AS, prefixes, AS_PATHs)
     message = update_lines.split('|')
 
     m_type = message[2]
-
     times.append(message[1])
+    
     types.append(m_type)
     s_IPs.append(message[3])
     s_AS.append(message[4])
@@ -63,8 +63,8 @@ if __name__ == '__main__':
 
     # VARIABLES (pathlib)
     file_path = '/srv/agarcia/passive_mrai/bgp_updates/' + collector + '/'
-    # bgpdump_path = '/srv/agarcia/TFM/bgpdump'
-    bgpdump_path = '/usr/local/bin/bgpdump'
+    bgpdump_path = '/srv/agarcia/TFM/bgpdump'
+    # bgpdump_path = '/usr/local/bin/bgpdump'
     step_dir = '/1.load_data'
     exp.per_step_dir(exp_name, step_dir)
     output_file_path = result_directory + exp_name + step_dir + '/' + collector + '_' + from_date + '-' + to_date + file_ext
@@ -173,14 +173,18 @@ if __name__ == '__main__':
                         for mm in range(from_min_aux, to_min_aux + 1, hop_size):
                             mm_str = format_number_to_string(mm)
 
+                            print 'Loading {}'.format(file_path + 'updates.' + year_str + month_str + dd_str + '.' + hh_str + mm_str)
                             if not os.path.isfile(file_path + 'updates.' + year_str + month_str + dd_str + '.' + hh_str + mm_str):
                                 os.system('curl http://data.ris.ripe.net/' + collector + '/' + year_str + '.' + month_str + '/' + 'updates.' + year_str + month_str + dd_str + '.' + hh_str + mm_str + '.gz' + ' -o ' + file_path + 'updates.' + year_str + month_str + dd_str + '.' + hh_str + mm_str + '.gz')
                                 os.system('gzip -d ' + file_path + 'updates.' + year_str + month_str + dd_str + '.' + hh_str + mm_str + '.gz')
-
-                            update_lines += subprocess.check_output(
-                                [bgpdump_path, '-m',
-                                 file_path + 'updates.' + year_str + month_str + dd_str + '.' + hh_str + mm_str]).strip().split(
-                                '\n')
+                            
+                            try:
+                                update_lines += subprocess.check_output(
+                                    [bgpdump_path, '-m',
+                                     file_path + 'updates.' + year_str + month_str + dd_str + '.' + hh_str + mm_str]).strip().split(
+                                    '\n')
+                            except:
+                                print ('UNAVAILABLE file: ' + file_path + 'updates.' + year_str + month_str + dd_str + '.' + hh_str + mm_str)
 
         # DATA FIELDS
         times = []
