@@ -98,6 +98,45 @@ def count_prefixes_per_monitor(dic):
     return monitors, count_pref_per_monitor
 
 
+def cluster_advises_per_monitor(dic):
+    least_specifics = {}
+    more_specifics = {}
+    intermediates = {}
+    uniques = {}
+    for monitor in dic:
+        print monitor
+        least_specifics_per_monitor = []
+        more_specifics_per_monitor = []
+        intermediates_per_monitor = []
+        uniques_per_monitor = []
+        pref_IP_network = [ip_network(pref) for pref in dic[monitor]]
+        for prefix_candidate in dic[monitor]:
+            # Es esto una picia???
+            prefixes_per_monitor = dic[monitor]
+            prefixes_per_monitor.remove(prefix_candidate)
+            prefix_candidate = ip_network(prefix_candidate)
+            least_specific = [pref_to_match for pref_to_match in pref_IP_network if prefix_candidate.overlaps(
+                pref_to_match) and prefix_candidate.netmask > pref_to_match.netmask]
+            more_specific = [pref_to_match for pref_to_match in pref_IP_network if prefix_candidate.overlaps(
+                pref_to_match) and prefix_candidate.netmask < pref_to_match.netmask]
+
+            if len(least_specific) == 0 and len(more_specific) != 0:
+                least_specifics_per_monitor.append(prefix_candidate.with_prefixlen)
+            elif len(more_specific) == 0 and len(least_specific) != 0:
+                more_specifics_per_monitor.append(prefix_candidate.with_prefixlen)
+            elif len(more_specific) != 0 and len(least_specific) != 0:
+                intermediates_per_monitor.append(prefix_candidate.with_prefixlen)
+            else:
+                uniques_per_monitor.append(prefix_candidate.with_prefixlen)
+
+        least_specifics[monitor] = least_specifics_per_monitor
+        more_specifics[monitor] = more_specifics_per_monitor
+        intermediates[monitor] = intermediates_per_monitor
+        uniques[monitor] = uniques_per_monitor
+
+    return least_specifics, more_specifics, intermediates, uniques
+
+
 def group_by_dirIP_mask(dic):
     reformat_dic = {}
 
