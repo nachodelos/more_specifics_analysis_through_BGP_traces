@@ -1,6 +1,5 @@
 import unittest2 as unittest
 import clean_data
-import os
 
 class TestCleanData(unittest.TestCase):
 
@@ -20,6 +19,7 @@ class TestCleanData(unittest.TestCase):
 		self.assertEqual(result , [2, 3, 4])
  
 
-
+if __name__ == '__main__':
+	unittest.main()
 
         
