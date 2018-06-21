@@ -19,20 +19,18 @@ def get_state_indexes(types):
 
 
 def get_affected_message_indexes_per_STATE(state_index, monitors, types, times):
-
     central_time = int(times[state_index])
     initial_time = central_time - 5
     final_time = central_time + 5
     monitor = monitors[state_index]
 
     i = state_index
-    backward_affected_indexes = []  
+    backward_affected_indexes = []
 
     while i - 1 >= 0:
         i = i - 1
         if types[i] != 'STATE' and monitors[i] == monitor and int(times[i]) >= initial_time:
             backward_affected_indexes.append(i)
-
 
     i = state_index
     forward_affected_indexes = []
@@ -40,7 +38,7 @@ def get_affected_message_indexes_per_STATE(state_index, monitors, types, times):
     while i + 1 < len(monitors):
         i = i + 1
         if types[i] != 'STATE' and monitors[i] == monitor and int(times[i]) <= final_time:
-            forward_affected_indexes.append(i)      
+            forward_affected_indexes.append(i)
 
     affected_indexes = backward_affected_indexes[::-1] + [state_index] + forward_affected_indexes
 
@@ -106,8 +104,8 @@ if __name__ == '__main__':
             affected_indexes += get_affected_message_indexes_per_STATE(i, df_monitor_list, df_type_list, df_time_list)
 
         df_clean = df_clean.drop(df.index[affected_indexes])
-        df_clean = df_clean.reset_index(drop=True)  
-        df_clean = df_clean.drop(['Unnamed: 0'],axis=1)
+        df_clean = df_clean.reset_index(drop=True)
+        df_clean = df_clean.drop(['Unnamed: 0'], axis=1)
 
         f.save_file(df_clean, file_ext, output_file_path)
 
