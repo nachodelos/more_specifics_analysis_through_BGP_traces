@@ -7,6 +7,14 @@ This is a way to separate data in a single file per collector
 """
 import experiment_manifest as exp
 import file_manager as f
+import os
+
+def check_output(input_file_path, output_file_path):
+    if os.path.getsize(input_file_path) == os.path.getsize(output_file_path): 
+        print "File created properly"
+    else:
+        print "WARNING FILE WITH ERRORS: File output size does't match with file input size."
+       
 
 if __name__ == '__main__':
 
@@ -41,7 +49,9 @@ if __name__ == '__main__':
 
         df_sort = df.sort_values(by=['MONITOR', 'TIME'])
 
-        df_sort = df_sort.reset_index()
-        df_sort = df_sort.drop(['index'], axis=1)
+        df_sort = df_sort.reset_index(drop=True)
+        df_sort = df_sort.drop(['Unnamed: 0'],axis=1)
 
         f.save_file(df_sort, file_ext, output_file_path)
+
+        check_output(input_file_path, output_file_path)
