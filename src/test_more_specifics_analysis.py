@@ -142,6 +142,14 @@ class TestMoreSpecificsAnalysis(unittest.TestCase):
 
         self.assertEqual(result, expected_result)
 
+    def test_count_prefixes_per_monitor(self):
+        monitors, counts_per_monitor = more_specifics_analysis.count_prefixes_per_monitor({'2a01:2a8::3': ['2001:7fb:fe05::/48'],
+                                                                     '193.0.0.56': ['2a06:e881:1400::/47',
+                                                                                    '2001:7fb:fe05::/48']})
+
+        self.assertEqual(monitors, ['193.0.0.56', '2a01:2a8::3'])
+        self.assertEqual(counts_per_monitor, [2, 1])
+
 
 if __name__ == '__main__':
     unittest.main()
