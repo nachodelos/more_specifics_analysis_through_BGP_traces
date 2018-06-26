@@ -134,9 +134,6 @@ def cluster_advises_per_monitor(dic):
             else:
                 uniques_per_monitor.append(prefix_candidate.with_prefixlen)
 
-            #print least_specific
-            #print more_specific
-
         least_specifics[monitor] = least_specifics_per_monitor
         more_specifics[monitor] = more_specifics_per_monitor
         intermediates[monitor] = intermediates_per_monitor
