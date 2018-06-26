@@ -10,8 +10,8 @@ import file_manager as f
 import os
 
 
-def check_output(input_file_path, output_file_path):
-    if os.path.getsize(input_file_path) == os.path.getsize(output_file_path):
+def check_output(input_path, output_path):
+    if os.path.getsize(input_path) == os.path.getsize(output_path):
         print "File created properly"
     else:
         print "WARNING FILE WITH ERRORS: File output size does't match with file input size."
