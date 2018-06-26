@@ -9,6 +9,7 @@ This script analyses several more specifics features from captured data from any
 import experiment_manifest as exp
 import file_manager as f
 import pandas as pd
+from ipaddress import ip_network
 
 
 # FUNCTIONS
@@ -17,7 +18,7 @@ def get_withdraw_indexes(df):
 
     updates_withdraw_indexes = []
 
-    for i in range(len(df)):
+    for i in range(len(df_type)):
         if df_type[i] == 'W':
             updates_withdraw_indexes.append(i)
     print "Find {} W updates".format(len(updates_withdraw_indexes))
@@ -43,7 +44,7 @@ def get_IPv_type_indexes(df):
     ipv6_updates_indexes = []
     ipv4_updates_indexes = []
 
-    for i in range(len(df)):
+    for i in range(len(df_prefix)):
         # IPv6 filter
         if ':' in df_prefix[i]:
             ipv6_updates_indexes.append(i)
@@ -72,12 +73,11 @@ def separate_IPv_types(df):
 
 
 def get_prefixes_seen_per_monitor(df):
-
     prefixes_per_monitor = {}
     df_monitor = df['MONITOR']
     df_prefix = df['PREFIX']
 
-    for i in range(len(df)):
+    for i in range(len(df['MONITOR'])):
         if df_monitor[i] not in prefixes_per_monitor:
             prefixes_per_monitor[df_monitor[i]] = [df_prefix[i]]
         else:
@@ -103,18 +103,23 @@ def cluster_advises_per_monitor(dic):
     more_specifics = {}
     intermediates = {}
     uniques = {}
+
+    print 'Collector with {} monitors'.format(len(dic))
+
     for monitor in dic:
         print monitor
         least_specifics_per_monitor = []
         more_specifics_per_monitor = []
         intermediates_per_monitor = []
         uniques_per_monitor = []
-        pref_IP_network = [ip_network(pref) for pref in dic[monitor]]
+        # Convert every prefix to ip_network object
+        # This object allows prefix matching
+        pref_IP_network = [ip_network(unicode(pref)) for pref in dic[monitor]]
+        # Cluster each prefix
         for prefix_candidate in dic[monitor]:
-            # Es esto una picia???
-            prefixes_per_monitor = dic[monitor]
-            prefixes_per_monitor.remove(prefix_candidate)
-            prefix_candidate = ip_network(prefix_candidate)
+
+            prefix_candidate = ip_network(unicode(prefix_candidate))
+
             least_specific = [pref_to_match for pref_to_match in pref_IP_network if prefix_candidate.overlaps(
                 pref_to_match) and prefix_candidate.netmask > pref_to_match.netmask]
             more_specific = [pref_to_match for pref_to_match in pref_IP_network if prefix_candidate.overlaps(
@@ -129,6 +134,9 @@ def cluster_advises_per_monitor(dic):
             else:
                 uniques_per_monitor.append(prefix_candidate.with_prefixlen)
 
+            #print least_specific
+            #print more_specific
+
         least_specifics[monitor] = least_specifics_per_monitor
         more_specifics[monitor] = more_specifics_per_monitor
         intermediates[monitor] = intermediates_per_monitor
@@ -140,48 +148,73 @@ def cluster_advises_per_monitor(dic):
 def group_by_dirIP_mask(dic):
     reformat_dic = {}
 
-    for monitor in dic:       
-        dir_ip_per_monitor = {} # Each dictionary element has the following format {'monitor_1':{'dir_IP_1':['/20', '/21' ...], 'monitor_2': ...}
+    for monitor in dic:
+        dir_ip_per_monitor = {}
         for pref in dic[monitor]:
             splitted_pref = pref.split('/')
             dir_IP = splitted_pref[0]
             mask = splitted_pref[1]
-            
-            if dir_IP not in dir_ip_per_monitor:
+
+            if pref not in dir_ip_per_monitor:
                 dir_ip_per_monitor[dir_IP] = [mask]
             else:
                 dir_ip_per_monitor[dir_IP].append(mask)
-        
-        reformat_dic[monitor] = dir_ip_per_monitor        
-    
-    return reformat_dic        
+
+        reformat_dic[monitor] = dir_ip_per_monitor
+
+    return reformat_dic
 
 
-def count_more_specifics(dic):
-    count_more_specifics_per_monitor = []
-    
-    for monitor in dic:
-        count_more_specifics = 0
-        for dir_IP in dic[monitor]:
-            if len(dic[monitor][dir_IP]) > 1:
-                count_more_specifics = count_more_specifics + (len(dic[monitor][dir_IP]) - 1)
-#            elif len(dic[monitor][dir_IP]) == 1:
-#                count_more_specifics = count_more_specifics + len(dic[monitor][dir_IP])
-                
-        count_more_specifics_per_monitor.append(count_more_specifics)
-        
-    return count_more_specifics_per_monitor
+def count_more_specifics(dic, monitors, number_of_prefixes):
+    more_specifics_per_monitor = []
+    more_specific_ratio = []
+
+    for i, monitor in enumerate(monitors):
+        more_specific_per_monitor_count = len(dic[monitor])
+        more_specifics_per_monitor.append(more_specific_per_monitor_count)
+        more_specific_ratio.append(float(more_specific_per_monitor_count) / float(number_of_prefixes[i]))
+
+    return more_specifics_per_monitor, more_specific_ratio
+
+
+def count_more_specifics_by_mask(dic, monitors):
+    more_specifics_by_mask_per_monitor = {}
+
+    for i, monitor in enumerate(monitors):
+        for prefix in dic[monitor]:
+            mask = prefix.split('/')[1]
+            if mask in more_specifics_by_mask_per_monitor[monitor]:
+                count_per_mask = more_specifics_by_mask_per_monitor[monitor][mask]
+                more_specifics_by_mask_per_monitor[monitor][mask] = count_per_mask + 1
+            else:
+                more_specifics_by_mask_per_monitor[monitor][mask] = 1
+
+    return more_specifics_by_mask_per_monitor
 
 
 def calculate_more_specific_ratio(ms_count, pr_count):
-    more_specific_ratio = []    
+    more_specific_ratio = []
 
     for i in range(len(ms_count)):
-        more_specific_ratio.append(float(ms_count[i])/float(pr_count[i]))
-    
-    return more_specific_ratio    
-    
-    
+        more_specific_ratio.append(float(ms_count[i]) / float(pr_count[i]))
+
+    return more_specific_ratio
+
+
+def generate_lists_for_dataframe(dic, p_type):
+    monitors = []
+    prefixes = []
+    prefix_type = []
+
+    for monitor in dic:
+        for prefix in dic[monitor]:
+            monitors.append(monitor)
+            prefixes.append(prefix)
+            prefix_type.append(p_type)
+
+    return monitors, prefixes, prefix_type
+
+
 if __name__ == "__main__":
 
     print("---------------")
@@ -210,9 +243,9 @@ if __name__ == "__main__":
     exp.per_step_dir(exp_name, step_dir)
 
     input_file_path = result_directory + exp_name + '/3.data_cleaning/' + collector + '_' + from_date + '-' + to_date + file_ext
-    output_file_path = result_directory + exp_name + step_dir + '/' + collector + '_' + from_date + '-' + to_date + file_ext
+    output_file_path = result_directory + exp_name + step_dir + '/' + collector + '_' + from_date + '-' + to_date + '.xlsx'
 
-    write_flag =  1# f.overwrite_file(output_file_path)
+    write_flag = f.overwrite_file(output_file_path)
 
     if write_flag == 1:
         print "Loading " + input_file_path + "..."
@@ -220,9 +253,15 @@ if __name__ == "__main__":
         df_clean = f.read_file(file_ext, input_file_path)
 
         print "Data loaded successfully"
+
+        df_sort = df_clean.sort_values(by=['MONITOR', 'PREFIX'])
+
+        df_sort = df_sort.reset_index(drop=True)
+        df_sort = df_sort.drop(['Unnamed: 0'], axis=1)
+
         print "Deleting withdraw updates..."
 
-        df_advises = delete_withdraw_updates(df_clean)
+        df_advises = delete_withdraw_updates(df_sort)
 
         print "Splitting {} advises of {} ...".format(len(df_advises), len(df_clean))
 
@@ -234,23 +273,59 @@ if __name__ == "__main__":
         print 'IPv4 updates: {}'.format(len(df_IPv4_updates))
         print 'IPv6 updates: {}'.format(len(df_IPv6_updates))
 
+        print 'IPv4 analysis'
         # IPv4 Analysis
+        print 'Getting prefixes seen per monitor'
         pref_IPv4 = get_prefixes_seen_per_monitor(df_IPv4_updates)
-        monitors_IPv4, pref_IPv4_count = count_prefixes_per_monitor(pref_IPv4)
-        refactor_dir_IPv4 = group_by_dirIP_mask(pref_IPv4)
-        more_specifics_count_per_monitor = count_more_specifics(refactor_dir_IPv4)
-        more_specific_ratio = calculate_more_specific_ratio(more_specifics_count_per_monitor, pref_IPv4_count)
+        print 'Clustering updates'
+        least_specifics_per_monitor, more_specifics_per_monitor, intermediates_per_monitor, uniques_per_monitor = cluster_advises_per_monitor(
+            pref_IPv4)
 
+        monitors_IPv4, pref_IPv4_count = count_prefixes_per_monitor(pref_IPv4)
+        count_more_specifics_per_monitor, more_specific_ratio = count_more_specifics(more_specifics_per_monitor,
+                                                                                     monitors_IPv4, pref_IPv4_count)
+
+        #        refactor_dir_IPv4 = group_by_dirIP_mask(pref_IPv4)
+        #        more_specifics_count_per_monitor = count_more_specifics(refactor_dir_IPv4)
+        #        more_specific_ratio = calculate_more_specific_ratio(more_specifics_count_per_monitor, pref_IPv4_count)
+        #
         step_dir = '/4.more_specifics_analysis/IPv4'
         output_file_path = result_directory + exp_name + step_dir + '/' + collector + '_' + from_date + '-' + to_date + file_ext
-        df_results_count = pd.DataFrame({'MONITOR': monitors_IPv4, 'PREF_COUNT': pref_IPv4_count, 'MORE_SPECIFICS_COUNT': more_specifics_count_per_monitor, 'MORE_SPECIFIC_RATIO': more_specific_ratio})
+        # Prefix count by mask generated dinamically
+        # for monitor in monitors_IPv4:
+
+        df_results_count = pd.DataFrame({'MONITOR': monitors_IPv4, 'PREF_COUNT': pref_IPv4_count,
+                                         'MORE_SPECIFICS_COUNT': count_more_specifics_per_monitor,
+                                         'MORE_SPECIFIC_RATIO': more_specific_ratio})
         f.save_file(df_results_count, file_ext, output_file_path)
 
-        # IPv6 Analysis
-        pref_IPv6 = get_prefixes_seen_per_monitor(df_IPv6_updates)
-        monitors_IPv6, pref_IPv6_counts = count_prefixes_per_monitor(pref_IPv6)
+        more_specific_monitors, more_specific_prefixes, more_specific_types = generate_lists_for_dataframe(
+            more_specifics_per_monitor, 'more_specific')
+        intermediate_monitors, intermediate_prefixes, intermediate_types = generate_lists_for_dataframe(
+            intermediates_per_monitor, 'intermediate')
+        least_specific_monitors, least_specific_prefixes, least_specific_types = generate_lists_for_dataframe(
+            least_specifics_per_monitor, 'least_specific')
+        unique_monitors, unique_prefixes, unique_types = generate_lists_for_dataframe(uniques_per_monitor, 'uniques')
 
-        step_dir = '/4.more_specifics_analysis/IPv6'
-        output_file_path = result_directory + exp_name + step_dir + '/' + collector + '_' + from_date + '-' + to_date + file_ext
-        df_results_count = pd.DataFrame({'MONITOR': monitors_IPv6, 'PREF_COUNT': pref_IPv6_counts})
-        f.save_file(df_results_count, file_ext, output_file_path)
+        monitors = more_specific_monitors + intermediate_monitors + least_specific_monitors + unique_monitors
+        prefixes = more_specific_prefixes + intermediate_prefixes + least_specific_prefixes + unique_prefixes
+        types = more_specific_types + intermediate_types + least_specific_types + unique_types
+
+        df_clustering = pd.DataFrame({'MONITOR': monitors, 'PREFIX': prefixes, 'TYPE': types})
+        output_file_path = result_directory + exp_name + step_dir + '/' + collector + '_' + from_date + '-' + to_date + '_clustering' + '.xlsx'
+        f.save_file(df_clustering, '.xlsx', output_file_path)
+
+#        print 'IPv6 analysis'
+#
+#        # IPv6 Analysis
+#        pref_IPv6 = get_prefixes_seen_per_monitor(df_IPv6_updates)
+#        least_specifics_per_monitor = get_least_specifics_per_monitor(pref_IPv6)
+#        
+#        monitors_IPv6, pref_IPv6_count = count_prefixes_per_monitor(pref_IPv6)
+#        count_more_specifics_per_monitor_IPv6, more_specific_ratio_IPv6 = count_more_specifics(least_specifics_per_monitor, monitors_IPv6, pref_IPv6_count)
+#
+#        
+#        step_dir = '/4.more_specifics_analysis/IPv6'
+#        output_file_path = result_directory + exp_name + step_dir + '/' + collector + '_' + from_date + '-' + to_date + file_ext
+#        df_results_count = pd.DataFrame({'MONITOR': monitors_IPv6, 'PREF_COUNT': pref_IPv6_count, 'MORE_SPECIFICS_COUNT': count_more_specifics_per_monitor_IPv6, 'MORE_SPECIFIC_RATIO': more_specific_ratio_IPv6})
+#        f.save_file(df_results_count, file_ext, output_file_path)
