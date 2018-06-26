@@ -5,7 +5,6 @@ This script cleans data following several recomendations of the article "Quantif
 
 """
 
-import pandas as pd
 import experiment_manifest as exp
 import file_manager as f
 
@@ -20,28 +19,28 @@ def get_state_indexes(types):
 
 
 def get_affected_message_indexes_per_STATE(state_index, monitors, types, times):
-    i = state_index
-
     central_time = int(times[state_index])
     initial_time = central_time - 5
     final_time = central_time + 5
-
-    forward_affected_indexes = []
     monitor = monitors[state_index]
 
-    while i + 1 < len(monitors) and monitors[i + 1] == monitor and times[i + 1] <= final_time:
-        i = i + 1
-        if types[i] != 'STATE':
-            forward_affected_indexes.append(i)
-
+    i = state_index
     backward_affected_indexes = []
 
-    while i - 1 > 0 and monitors[i - 1] == monitor and times[i - 1] <= initial_time:
+    while i - 1 >= 0:
         i = i - 1
-        if types[i] != 'STATE':
+        if types[i] != 'STATE' and monitors[i] == monitor and int(times[i]) >= initial_time:
             backward_affected_indexes.append(i)
 
-    affected_indexes = backward_affected_indexes + [state_index] + forward_affected_indexes
+    i = state_index
+    forward_affected_indexes = []
+
+    while i + 1 < len(monitors):
+        i = i + 1
+        if types[i] != 'STATE' and monitors[i] == monitor and int(times[i]) <= final_time:
+            forward_affected_indexes.append(i)
+
+    affected_indexes = backward_affected_indexes[::-1] + [state_index] + forward_affected_indexes
 
     return affected_indexes
 
@@ -105,6 +104,8 @@ if __name__ == '__main__':
             affected_indexes += get_affected_message_indexes_per_STATE(i, df_monitor_list, df_type_list, df_time_list)
 
         df_clean = df_clean.drop(df.index[affected_indexes])
+        df_clean = df_clean.reset_index(drop=True)
+        df_clean = df_clean.drop(['Unnamed: 0'], axis=1)
 
         f.save_file(df_clean, file_ext, output_file_path)
 
