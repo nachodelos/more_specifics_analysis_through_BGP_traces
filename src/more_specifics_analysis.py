@@ -13,65 +13,6 @@ from ipaddress import ip_network
 
 
 # FUNCTIONS
-def get_withdraw_indexes(df):
-    df_type = df['TYPE']
-
-    updates_withdraw_indexes = []
-
-    for i in range(len(df_type)):
-        if df_type[i] == 'W':
-            updates_withdraw_indexes.append(i)
-    print "Find {} W updates".format(len(updates_withdraw_indexes))
-
-    return updates_withdraw_indexes
-
-
-# Delete W updates and reset index for resulting DataFrame
-def delete_withdraw_updates(df):
-    updates_withdraw_indexes = get_withdraw_indexes(df)
-
-    df_advises_updates = df
-    df_advises_updates = df_advises_updates.drop(df.index[updates_withdraw_indexes])
-    df_advises_updates = df_advises_updates.reset_index()
-    df_advises_updates = df_advises_updates.drop(['index'], axis=1)
-
-    return df_advises_updates
-
-
-def get_IPv_type_indexes(df):
-    df_prefix = df['PREFIX']
-
-    ipv6_updates_indexes = []
-    ipv4_updates_indexes = []
-
-    for i in range(len(df_prefix)):
-        # IPv6 filter
-        if ':' in df_prefix[i]:
-            ipv6_updates_indexes.append(i)
-        # IPv4 filter
-        else:
-            ipv4_updates_indexes.append(i)
-
-    return ipv4_updates_indexes, ipv6_updates_indexes
-
-
-def separate_IPv_types(df):
-    ipv4_updates_indexes, ipv6_updates_indexes = get_IPv_type_indexes(df)
-
-    # Delete corresponding entries
-    df_ipv6_updates = df.drop(df.index[ipv4_updates_indexes])
-    df_ipv4_updates = df.drop(df.index[ipv6_updates_indexes])
-
-    # Reset indexes
-    df_ipv6_updates = df_ipv6_updates.reset_index()
-    df_ipv6_updates = df_ipv6_updates.drop(['index'], axis=1)
-
-    df_ipv4_updates = df_ipv4_updates.reset_index()
-    df_ipv4_updates = df_ipv4_updates.drop(['index'], axis=1)
-
-    return df_ipv4_updates, df_ipv6_updates
-
-
 def get_prefixes_seen_per_monitor(df):
     prefixes_per_monitor = {}
     df_monitor = df['MONITOR']
@@ -212,89 +153,38 @@ def generate_lists_for_dataframe(dic, p_type):
     return monitors, prefixes, prefix_type
 
 
-if __name__ == "__main__":
-
-    print("---------------")
-    print("Stage 4: More Specifics Analysis")
-    print("---------------")
-
-    # VARIABLES (experiment)
-    exp_name, collector = exp.load_arguments()
-
-    experiments = getattr(exp, 'experiments')
-    experiment = experiments[exp_name]
-
-    from_date = experiment['initDay']
-    to_date = experiment['endDay']
-    result_directory = experiment['resultDirectory']
-    file_ext = experiment['resultFormat']
-
-    # Directories creation
-    step_dir = '/4.more_specifics_analysis'
-    exp.per_step_dir(exp_name, step_dir)
-
-    step_dir = '/4.more_specifics_analysis/IPv4'
-    exp.per_step_dir(exp_name, step_dir)
-
-    step_dir = '/4.more_specifics_analysis/IPv6'
-    exp.per_step_dir(exp_name, step_dir)
-
-    input_file_path = result_directory + exp_name + '/3.data_cleaning/' + collector + '_' + from_date + '-' + to_date + file_ext
-    output_file_path = result_directory + exp_name + step_dir + '/' + collector + '_' + from_date + '-' + to_date + '.xlsx'
+def IPv_analysis(IPv_type, exp_n, s_dir, res_directory, coll, from_d, to_d, ext):
+    input_file_path = res_directory + exp_n + '/5.split_data_for_analysis/' + IPv_type + '/' + coll + '_' + from_d + '-' + to_d + ext
+    output_file_path = res_directory + exp_n + s_dir + IPv_type + '/' + collector + '_' + from_d + '-' + to_d + '.xlsx'
 
     write_flag = f.overwrite_file(output_file_path)
 
     if write_flag == 1:
         print "Loading " + input_file_path + "..."
 
-        df_clean = f.read_file(file_ext, input_file_path)
+        df_updates = f.read_file(file_ext, input_file_path)
 
         print "Data loaded successfully"
-
-        df_sort = df_clean.sort_values(by=['MONITOR', 'PREFIX'])
-
-        df_sort = df_sort.reset_index(drop=True)
-        df_sort = df_sort.drop(['Unnamed: 0'], axis=1)
-
-        print "Deleting withdraw updates..."
-
-        df_advises = delete_withdraw_updates(df_sort)
-
-        print "Splitting {} advises of {} ...".format(len(df_advises), len(df_clean))
-
-        df_IPv4_updates, df_IPv6_updates = separate_IPv_types(df_advises)
-
-        print 'Data separated for analysis'
-        print 'Total Updates: {}'.format(len(df_clean))
-        print 'Total Advises: {}'.format(len(df_IPv4_updates) + len(df_IPv6_updates))
-        print 'IPv4 updates: {}'.format(len(df_IPv4_updates))
-        print 'IPv6 updates: {}'.format(len(df_IPv6_updates))
-
-        print 'IPv4 analysis'
         # IPv4 Analysis
         print 'Getting prefixes seen per monitor'
-        pref_IPv4 = get_prefixes_seen_per_monitor(df_IPv4_updates)
+        prefs = get_prefixes_seen_per_monitor(df_updates)
         print 'Clustering updates'
         least_specifics_per_monitor, more_specifics_per_monitor, intermediates_per_monitor, uniques_per_monitor = cluster_advises_per_monitor(
-            pref_IPv4)
+            prefs)
 
-        monitors_IPv4, pref_IPv4_count = count_prefixes_per_monitor(pref_IPv4)
+        monitors, pref_count = count_prefixes_per_monitor(prefs)
         count_more_specifics_per_monitor, more_specific_ratio = count_more_specifics(more_specifics_per_monitor,
-                                                                                     monitors_IPv4, pref_IPv4_count)
+                                                                                     monitors, pref_count)
 
-        #        refactor_dir_IPv4 = group_by_dirIP_mask(pref_IPv4)
-        #        more_specifics_count_per_monitor = count_more_specifics(refactor_dir_IPv4)
-        #        more_specific_ratio = calculate_more_specific_ratio(more_specifics_count_per_monitor, pref_IPv4_count)
-        #
-        step_dir = '/4.more_specifics_analysis/IPv4'
-        output_file_path = result_directory + exp_name + step_dir + '/' + collector + '_' + from_date + '-' + to_date + file_ext
+        step_dir = '/6.more_specifics_analysis/' + IPv_type
+        output_file_path = result_directory + exp_name + step_dir + '/' + collector + '_' + from_date + '-' + to_date + '.xlsx'
         # Prefix count by mask generated dinamically
         # for monitor in monitors_IPv4:
 
-        df_results_count = pd.DataFrame({'MONITOR': monitors_IPv4, 'PREF_COUNT': pref_IPv4_count,
+        df_results_count = pd.DataFrame({'MONITOR': monitors, 'PREF_COUNT': pref_count,
                                          'MORE_SPECIFICS_COUNT': count_more_specifics_per_monitor,
                                          'MORE_SPECIFIC_RATIO': more_specific_ratio})
-        f.save_file(df_results_count, file_ext, output_file_path)
+        f.save_file(df_results_count, '.xlsx', output_file_path)
 
         more_specific_monitors, more_specific_prefixes, more_specific_types = generate_lists_for_dataframe(
             more_specifics_per_monitor, 'more_specific')
@@ -312,17 +202,35 @@ if __name__ == "__main__":
         output_file_path = result_directory + exp_name + step_dir + '/' + collector + '_' + from_date + '-' + to_date + '_clustering' + '.xlsx'
         f.save_file(df_clustering, '.xlsx', output_file_path)
 
-#        print 'IPv6 analysis'
-#
-#        # IPv6 Analysis
-#        pref_IPv6 = get_prefixes_seen_per_monitor(df_IPv6_updates)
-#        least_specifics_per_monitor = get_least_specifics_per_monitor(pref_IPv6)
-#        
-#        monitors_IPv6, pref_IPv6_count = count_prefixes_per_monitor(pref_IPv6)
-#        count_more_specifics_per_monitor_IPv6, more_specific_ratio_IPv6 = count_more_specifics(least_specifics_per_monitor, monitors_IPv6, pref_IPv6_count)
-#
-#        
-#        step_dir = '/4.more_specifics_analysis/IPv6'
-#        output_file_path = result_directory + exp_name + step_dir + '/' + collector + '_' + from_date + '-' + to_date + file_ext
-#        df_results_count = pd.DataFrame({'MONITOR': monitors_IPv6, 'PREF_COUNT': pref_IPv6_count, 'MORE_SPECIFICS_COUNT': count_more_specifics_per_monitor_IPv6, 'MORE_SPECIFIC_RATIO': more_specific_ratio_IPv6})
-#        f.save_file(df_results_count, file_ext, output_file_path)
+
+if __name__ == "__main__":
+    print("---------------")
+    print("Stage 6: More Specifics Analysis")
+    print("---------------")
+
+    # VARIABLES (experiment)
+    exp_name, collector = exp.load_arguments()
+
+    experiments = getattr(exp, 'experiments')
+    experiment = experiments[exp_name]
+
+    from_date = experiment['initDay']
+    to_date = experiment['endDay']
+    result_directory = experiment['resultDirectory']
+    file_ext = experiment['resultFormat']
+
+    # Directories creation
+    step_dir = '/6.more_specifics_analysis'
+    exp.per_step_dir(exp_name, step_dir)
+
+    step_dir = '/6.more_specifics_analysis/IPv4/'
+    exp.per_step_dir(exp_name, step_dir)
+
+    step_dir = '/6.more_specifics_analysis/IPv6/'
+    exp.per_step_dir(exp_name, step_dir)
+
+    # IPv4 analysis
+    IPv_analysis('IPv4', exp_name, step_dir, result_directory, collector, from_date, to_date, file_ext)
+
+    # IPv6 analysis
+    IPv_analysis('IPv6', exp_name, step_dir, result_directory, collector, from_date, to_date, file_ext)
