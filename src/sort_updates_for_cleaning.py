@@ -42,7 +42,7 @@ if __name__ == '__main__':
 
     write_flag = f.overwrite_file(output_file_path)
 
-    if write_flag == 1:
+    if write_flag:
         print ('Loading ' + input_file_path + ' ...')
 
         df = f.read_file(file_ext, input_file_path)
