@@ -102,7 +102,9 @@ def day2timestamp(fullday):
     year = int(fullday[:4])
     month = int(fullday[4:6])
     day = int(fullday[6:8])
-    return calendar.timegm((year, month, day, 0, 0, 0, 0))
+    hour = int(fullday[9:11])
+    minute = int(fullday[11:13])
+    return calendar.timegm((year, month, day, hour, minute, 0, 0))
 
 
 def timestamp2day(timestamp):
