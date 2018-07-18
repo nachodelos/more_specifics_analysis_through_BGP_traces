@@ -30,30 +30,18 @@ import calendar
 # - resultFormat could be .csv or .xlsx The execution is briefer with .csv but it is less efficient in terms of storage
 experiments = {
     'experiment_1': {'description': 'Developing tests',
-                     'initDay': '20171230.2350',  # ts 1509494400,
-                     'endDay': '20180101.2350',  # 'endTime': 1509667200,      # two days later, Nov 3rd ...
+                     'initDay': '20180108.0000',  # ts 1509494400,
+                     'endDay': '20180108.0800',  # 'endTime': 1509667200,      # two days later, Nov 3rd ...
                      'resultDirectory': '/srv/agarcia/igutierrez/results/',
-                     'resultFormat': '.xlsx'
+                     'resultFormat': '.csv'
                      },
     'experiment_2': {'description': 'Developing tests',
-                     'initDay': '20180108.0400',  # ts 1509494400,
-                     'endDay': '20180108.0410',  # 'endTime': 1509667200,      # two days later, Nov 3rd ...
+                     'initDay': '20180108.1600',  # ts 1509494400,
+                     'endDay': '20180109.0000',  # 'endTime': 1509667200,      # two days later, Nov 3rd ...
                      'resultDirectory': '/srv/agarcia/igutierrez/results/',
                      'resultFormat': '.csv'
 
-                     },
-    'experiment_3': {'description': 'Developing tests',
-                     'initDay': '20171230.2350',  # ts 1509494400,
-                     'endDay': '20171231.0500',  # 'endTime': 1509667200,      # two days later, Nov 3rd ...
-                     'resultDirectory': '/srv/agarcia/igutierrez/results/',
-                     'resultFormat': '.csv'
-
-                     },
-    'experiment_4': {'description': 'Developing tests',
-                     'initDay': '20171230.2350',  # ts 1509494400,
-                     'endDay': '20180101.2350',  # 'endTime': 1509667200,      # two days later, Nov 3rd ...
-                     'resultDirectory': '/srv/agarcia/igutierrez/results/',
-                     'resultFormat': '.xlsx'},
+                     }
     # Put here more experiments, never remove any (to keep the record)
 }
 
@@ -90,17 +78,20 @@ def check_exp_name_ok(expName):
         exit(1)
 
 
-# Check if starting time is aligned with 00:00:00
-# def _check_exp_starting_time_alignment(expName):
-#     # >>> time.gmtime(1509494400)
-#     # time.struct_time(tm_year=2017, tm_mon=11, tm_mday=1, tm_hour=0, tm_min=0, tm_sec=0, tm_wday=2, tm_yday=305, tm_isdst=0)
-#     starting_time = gmtime(experiments[expName]['initTime'])
-#     if (starting_time.tm_hour != 0 or starting_time.tm_min != 0 or starting_time.tm_sec != 0):
-#         print('Unexpected initTime alignment, initTime: {} ').format(starting_time)
-#         exit(1)
-#     if starting_time.tm_year < 2000:
-#         print('initTime before 2000, too early')
-#         exit(1)
+def check_date_ok(fullday):
+    if len(fullday) != 13:
+        print('check_init_day_ok, wrong day format')
+        exit(1)
+
+    hour = fullday[9:11]
+    minute = fullday[11:13]
+
+    if (hour == '00' or hour == '08' or hour == '16') and minute == '00':
+        return True
+    else:
+        print('Incorrect date format. Hour must be multiple of 8 and minutes = 00')
+        return False
+
 
 # fullday ~ '20171101'
 def day2timestamp(fullday):
