@@ -125,12 +125,23 @@ def experiment_end_day(expName):
     return experiments[expName]['endDay']
 
 
-def experiment_number_days(expName):
+def get_experiment_from_time(expName):
+    check_exp_name_ok(expName)
+    return day2timestamp(experiments[expName]['initDay'])
+
+
+def get_experiment_to_time(expName):
+    check_exp_name_ok(expName)
+    return day2timestamp(experiments[expName]['endDay'])
+
+
+def get_experiment_number_days(expName):
     check_exp_name_ok(expName)
     return (day2timestamp(experiments[expName]['endDay']) - day2timestamp(experiments[expName]['initDay'])) / (
-                24 * 60 * 60)
+            24 * 60 * 60)
 
-def experiment_result_format(expName):
+
+def get_experiment_result_format(expName):
     check_exp_name_ok(expName)
     return experiments[expName]['resultFormat']
 
