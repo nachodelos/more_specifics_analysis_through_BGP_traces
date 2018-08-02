@@ -36,8 +36,8 @@ experiments = {
                      'resultFormat': '.csv'
                      },
     'experiment_2': {'description': 'Developing tests',
-                     'initDay': '20180108.1600',  # ts 1509494400,
-                     'endDay': '20180109.0000',  # 'endTime': 1509667200,      # two days later, Nov 3rd ...
+                     'initDay': '20130108.0000',  # ts 1509494400,
+                     'endDay': '20130108.0800',  # 'endTime': 1509667200,      # two days later, Nov 3rd ...
                      'resultDirectory': '/srv/agarcia/igutierrez/results/',
                      'resultFormat': '.csv'
 
