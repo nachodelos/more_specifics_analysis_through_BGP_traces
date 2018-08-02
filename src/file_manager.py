@@ -32,8 +32,8 @@ def overwrite_file(output_file_path):
     
     if os.path.isfile(output_file_path):
         print "Output file already exists. Skipping this stage!"
-        write_flag = 0
+        write_flag = False
     else:
-        write_flag = 1
+        write_flag = True
 
     return write_flag
