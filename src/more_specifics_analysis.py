@@ -10,7 +10,6 @@ import experiment_manifest as exp
 import file_manager as f
 import pandas as pd
 import radix
-from ipaddress import ip_network
 
 
 # FUNCTIONS
