@@ -75,52 +75,6 @@ def split_data_per_monitor(df):
     return updates_per_monitor
 
 
-def get_stability_time_per_prefix(dic, experiment_from_time, experiment_to_time):
-    # Get experiment time in minutes
-    experiment_time = float(experiment_to_time) - float(experiment_from_time)
-    prefix_visibility_per_monitor = []
-
-    for monitor in dic:
-
-        visibility_per_prefix = {}
-        df_per_monitor = dic[monitor]
-        df_per_monitor['TIME'] = df_per_monitor['TIME']
-        print 'Splitting monitor {} data with {} entries and {} prefixes'.format(monitor, len(df_per_monitor['PREFIX']),
-                                                                                 len(df_per_monitor[
-                                                                                         'PREFIX'].unique().tolist()))
-        for prefix in df_per_monitor['PREFIX'].unique().tolist():
-
-            prefix_rows = df_per_monitor['PREFIX'] == prefix
-            prefix_times = df_per_monitor[prefix_rows]['TIME'].tolist()
-            prefix_pref_types = df_per_monitor[prefix_rows]['pref_type'].tolist()
-
-            accum_time = 0
-            aux_from_time = experiment_from_time
-
-            for i in range(len(prefix_times)):
-
-                if prefix_pref_types[i] == 'B':
-                    accum_time = experiment_time
-                    aux_from_time = prefix_times[i]
-                elif prefix_pref_types[i] == 'A' and i > 0 and prefix_pref_types[i - 1] == 'B' or prefix_pref_types[
-                    i - 1] == 'A':
-                    accum_time = prefix_times[i] - aux_from_time
-                    aux_from_time = prefix_times[i]
-                elif prefix_pref_types[i] == 'A' and i == len(prefix_times) - 1 and prefix_pref_types[i - 1] == 'B':
-                    accum_time = prefix_times[i] - aux_from_time
-                    aux_from_time = prefix_times[i]
-                elif prefix_pref_types[i] == 'A':
-                    aux_from_time = prefix_times[i]
-                elif prefix_pref_types[i] == 'W':
-                    accum_time += prefix_times[i] - aux_from_time
-
-            visibility_per_prefix[prefix] = accum_time / experiment_time
-
-        prefix_visibility_per_monitor[monitor] = visibility_per_prefix
-
-    return prefix_visibility_per_monitor
-
-
 def prefix_visibility_analysis(df_sort, exp_n):
     from_time = float(exp.get_experiment_from_time(exp_n))
     to_time = float(exp.get_experiment_to_time(exp_n))
@@ -237,31 +191,6 @@ def clustering_prefixes(df_pref_per_monitor):
             deeps.append(deep)
 
     return pref_types, deeps
-
-
-def get_withdraw_indexes(df):
-    df_pref_type = df['pref_type']
-
-    updates_withdraw_indexes = []
-
-    for i in range(len(df_pref_type)):
-        if df_pref_type[i] == 'W':
-            updates_withdraw_indexes.append(i)
-    print "Find {} W updates".format(len(updates_withdraw_indexes))
-
-    return updates_withdraw_indexes
-
-
-# Delete W updates and reset index for resulting DataFrame
-def delete_withdraw_updates(df):
-    updates_withdraw_indexes = get_withdraw_indexes(df)
-
-    df_advises_updates = df
-    df_advises_updates = df_advises_updates.drop(df.index[updates_withdraw_indexes])
-    df_advises_updates = df_advises_updates.reset_index()
-    df_advises_updates = df_advises_updates.drop(['index'], axis=1)
-
-    return df_advises_updates
 
 
 def IPv_analysis(IPv_type, exp_n, res_directory, coll, from_d, to_d, ext):
