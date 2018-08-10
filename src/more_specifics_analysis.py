@@ -169,11 +169,12 @@ def prefix_visibility_analysis(df_sort, exp_n):
 
     return monitors, prefixes, visibilities_per_prefix
 
+
 def get_more_specific_mask(covered_prefixes):
     masks = []
-    
+
     for pref_rnode in covered_prefixes:
-	masks.append(pref_rnode.prefixlen)
+        masks.append(pref_rnode.prefixlen)
     sorted_masks = sorted(masks)
     more_specific_mask = sorted_masks[-1]
 
@@ -183,7 +184,7 @@ def get_more_specific_mask(covered_prefixes):
 def get_results(pref, tree):
     least_specific_rnode = tree.search_worst(pref)
     covered_rnodes = tree.search_covered(pref)
-    
+
     least_specific_pref = least_specific_rnode.prefix
     more_specifc_mask = get_more_specific_mask(covered_rnodes)
     # Get current prefix length
@@ -191,18 +192,18 @@ def get_results(pref, tree):
 
     if more_specifc_mask == pref_len and least_specific_pref == pref:
         pref_type = 'unique'
-        depth = 0
+        deep = 0
     elif more_specifc_mask == pref_len and least_specific_pref != pref:
         pref_type = 'more_specific'
-        depth = 0
+        deep = more_specifc_mask - least_specific_rnode.prefixlen
     elif more_specifc_mask != pref_len and least_specific_pref == pref:
         pref_type = 'least_specific'
-        depth = more_specifc_mask - least_specific_rnode.prefixlen
+        deep = 0
     else:
         pref_type = 'intermediate'
-        depth = more_specifc_mask - tree.search_exact(pref).prefixlen
+        deep = more_specifc_mask - tree.search_exact(pref).prefixlen
 
-    return pref_type, depth
+    return pref_type, deep
 
 
 def clustering_prefixes(df_pref_per_monitor):
@@ -211,7 +212,7 @@ def clustering_prefixes(df_pref_per_monitor):
                                                   len(df_pref_per_monitor['MONITOR']))
     # Lists to store results
     pref_types = []
-    depths = []
+    deeps = []
 
     for i, from_i in enumerate(monitor_indexes):
         # Create a new tree per monitor
@@ -231,11 +232,11 @@ def clustering_prefixes(df_pref_per_monitor):
 
         # Get results -> pref_type and DEPTH
         for prefix in prefixes_per_monitor:
-            pref_type, depth = get_results(prefix, rtree)
+            pref_type, deep = get_results(prefix, rtree)
             pref_types.append(pref_type)
-            depths.append(depth)
+            deeps.append(deep)
 
-    return pref_types, depths
+    return pref_types, deeps
 
 
 def get_withdraw_indexes(df):
@@ -265,7 +266,7 @@ def delete_withdraw_updates(df):
 
 def IPv_analysis(IPv_type, exp_n, res_directory, coll, from_d, to_d, ext):
     input_file_path = res_directory + exp_n + '/5.split_data_for_analysis/' + IPv_type + '/' + coll + '_' + from_d + '-' + to_d + ext
-    output_file_path = res_directory + exp_n + '/6.more_specifics_analysis/' + IPv_type + '/' + collector + '_' + from_d + '-' + to_d + '_visibility' + '.csv'
+    output_file_path = res_directory + exp_n + '/6.more_specifics_analysis/' + IPv_type + '/' + collector + '_' + from_d + '-' + to_d + '.csv'
     write_flag = f.overwrite_file(output_file_path)
 
     if write_flag:
@@ -276,6 +277,9 @@ def IPv_analysis(IPv_type, exp_n, res_directory, coll, from_d, to_d, ext):
         df_sort = df_sort.reset_index(drop=True)
         df_sort = df_sort.drop(['Unnamed: 0'], axis=1)
 
+        # Drop default specified in routing table
+        # df_sort = df_sort[df_sort['PREFIX'] != '0.0.0.0/0']
+
         print "Data loaded successfully"
 
         # 1.Prefix visibility analysis
@@ -284,15 +288,14 @@ def IPv_analysis(IPv_type, exp_n, res_directory, coll, from_d, to_d, ext):
 
         df_prefixes_per_monitor = pd.DataFrame(
             {'MONITOR': monitors, 'PREFIX': prefixes})
-	output_file_path = res_directory + exp_n + '/6.more_specifics_analysis/' + IPv_type + '/' + collector + '_' + from_d + '-' + to_d + '_visibility' + '.csv'
-	f.save_file(df_prefixes_per_monitor, '.csv', output_file_path)
 
         # 2.Clustering prefixes
-        pref_types, depths = clustering_prefixes(df_prefixes_per_monitor)
+        pref_types, deeps = clustering_prefixes(df_prefixes_per_monitor)
 
         df_visibility_per_prefix = pd.DataFrame(
-            {'MONITOR': monitors, 'PREFIX': prefixes, 'VISIBILITY': visibilities_per_prefix, 'TYPE': pref_types, 'DEPTH': depths})
-	output_file_path = res_directory + exp_n + '/6.more_specifics_analysis/' + IPv_type + '/' + collector + '_' + from_d + '-' + to_d + '.csv'
+            {'MONITOR': monitors, 'PREFIX': prefixes, 'VISIBILITY': visibilities_per_prefix, 'TYPE': pref_types,
+             'DEEP': deeps})
+        output_file_path = res_directory + exp_n + '/6.more_specifics_analysis/' + IPv_type + '/' + collector + '_' + from_d + '-' + to_d + '.csv'
         f.save_file(df_visibility_per_prefix, '.csv', output_file_path)
 
 
