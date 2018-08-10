@@ -79,13 +79,13 @@ if __name__ == '__main__':
             os.system(
                 'curl http://data.ris.ripe.net/' + collector + '/' + year_str + '.' + month_str + '/' + 'bview.' + year_str + month_str + dd_str + '.' + hh_str + mm_str + '.gz' + ' -o ' + file_path + 'bview.' + year_str + month_str + dd_str + '.' + hh_str + mm_str + '.gz')
             os.system('gzip -d ' + file_path + 'bview.' + year_str + month_str + dd_str + '.' + hh_str + mm_str + '.gz')
-            try:
-                rib_lines = subprocess.check_output([bgpdump_path, '-m',
-                                                     file_path + 'bview.' + year_str + month_str + dd_str + '.' + hh_str + mm_str]).strip().split(
-                    '\n')
-            except:
-                print (
-                            'UNAVAILABLE file: ' + file_path + 'bview.' + year_str + month_str + dd_str + '.' + hh_str + mm_str)
+        try:
+            rib_lines = subprocess.check_output([bgpdump_path, '-m',
+                                                 file_path + 'bview.' + year_str + month_str + dd_str + '.' + hh_str + mm_str]).strip().split(
+                '\n')
+        except:
+            print ('UNAVAILABLE file: ' + file_path + 'bview.' + year_str + month_str + dd_str + '.' + hh_str + mm_str)
+
         # DATA FIELDS
         times = []
         types = []
