@@ -87,6 +87,8 @@ def prefix_visibility_analysis(df_sort, exp_n):
     monitors = []
     prefixes = []
     visibilities_per_prefix = []
+    updates_per_prefix = []
+    ASes = []
 
     for i, from_i in enumerate(monitor_indexes):
         if i < len(monitor_indexes) - 1:
@@ -98,9 +100,12 @@ def prefix_visibility_analysis(df_sort, exp_n):
         prefixes_per_monitor = df_sort['PREFIX'][from_i:to_i]
         times_per_monitor = df_sort['TIME'][from_i:to_i]
         pref_types_per_monitor = df_sort['TYPE'][from_i:to_i]
+        AS_per_monitor = df_sort['AS'][from_i:to_i]
+
         prefix_indexes = get_change_index_per_column(prefixes_per_monitor, from_i, to_i)
         print "df monitor from {} to {}".format(from_i, to_i)
         aux_monitor_end += len(prefixes_per_monitor)
+        # Prefixes loop
         for from_j, from_j_df in enumerate(prefix_indexes):
             if from_j < len(prefix_indexes) - 1:
                 prefix_window = range(prefix_indexes[from_j], prefix_indexes[from_j + 1])
@@ -108,9 +113,19 @@ def prefix_visibility_analysis(df_sort, exp_n):
                 prefix_window = range(prefix_indexes[from_j], aux_monitor_end)
 
             current_prefix = prefixes_per_monitor[from_j_df]
+            current_prefix_AS = AS_per_monitor[from_j_df]
             print current_prefix
             times_per_prefix = times_per_monitor[prefix_window]
             pref_types_per_prefix = pref_types_per_monitor[prefix_window]
+
+            # Get number of updates per prefix
+            # Maybe addition of links or AS Prepending
+            pref_types_per_prefix_l = pref_types_per_prefix.tolist()
+
+            if pref_types_per_prefix_l.pop(0) == 'B':
+                updates_per_prefix.append(len(pref_types_per_prefix_l))
+            else:
+                updates_per_prefix.append(len(pref_types_per_prefix_l) + 1)
 
             visibility_per_prefix = get_visibility_time_per_prefix(times_per_prefix, pref_types_per_prefix, from_time,
                                                                    to_time, prefix_window)
@@ -120,8 +135,9 @@ def prefix_visibility_analysis(df_sort, exp_n):
             monitors.append(current_monitor)
             prefixes.append(current_prefix)
             visibilities_per_prefix.append(visibility_per_prefix)
+            ASes.append(current_prefix_AS)
 
-    return monitors, prefixes, visibilities_per_prefix
+    return monitors, prefixes, visibilities_per_prefix, updates_per_prefix, ASes
 
 
 def get_more_specific_mask(covered_prefixes):
@@ -213,7 +229,7 @@ def IPv_analysis(IPv_type, exp_n, res_directory, coll, from_d, to_d, ext):
 
         # 1.Prefix visibility analysis
         print 'Getting visibility per prefix...'
-        monitors, prefixes, visibilities_per_prefix = prefix_visibility_analysis(df_sort, exp_n)
+        monitors, prefixes, visibilities_per_prefix, updates_per_prefix, ASes = prefix_visibility_analysis(df_sort, exp_n)
 
         df_prefixes_per_monitor = pd.DataFrame(
             {'MONITOR': monitors, 'PREFIX': prefixes})
@@ -222,8 +238,8 @@ def IPv_analysis(IPv_type, exp_n, res_directory, coll, from_d, to_d, ext):
         pref_types, deeps = clustering_prefixes(df_prefixes_per_monitor)
 
         df_visibility_per_prefix = pd.DataFrame(
-            {'MONITOR': monitors, 'PREFIX': prefixes, 'VISIBILITY': visibilities_per_prefix, 'TYPE': pref_types,
-             'DEEP': deeps})
+            {'MONITOR': monitors, 'PREFIX': prefixes, 'VISIBILITY': visibilities_per_prefix,'UPDATES': updates_per_prefix, 'TYPE': pref_types,
+             'DEEP': deeps, 'ORIGIN': ASes})
         output_file_path = res_directory + exp_n + '/6.more_specifics_analysis/' + IPv_type + '/' + collector + '_' + from_d + '-' + to_d + '.csv'
         f.save_file(df_visibility_per_prefix, '.csv', output_file_path)
 
