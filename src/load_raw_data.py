@@ -22,26 +22,30 @@ def format_number_to_string(num):
     return num_str
 
 
-def dump_into_lists(update_lines, times, types, s_IPs, s_AS, prefixes, AS_PATHs):
+def dump_into_lists(update_lines, times, types, s_IPs, s_AS, prefixes, AS_PATHs, from_t, to_t):
     message = update_lines.split('|')
 
-    m_type = message[2]
-    times.append(message[1])
-    
-    types.append(m_type)
-    s_IPs.append(message[3])
-    s_AS.append(message[4])
+    time = int(message[1])
 
-    if m_type == 'A':
-        prefixes.append(message[5])
-        AS_PATH_list = message[6].split(' ')
-        AS_PATHs.append(AS_PATH_list)
-    elif m_type == 'W':
-        prefixes.append(message[5])
-        AS_PATHs.append([])
-    elif m_type == 'STATE':
-        prefixes.append('')
-        AS_PATHs.append([])
+    # in this way this code avoids to obtain unexpected results
+    if from_t < time < to_t:
+        times.append(message[1])
+        m_type = message[2]
+
+        types.append(m_type)
+        s_IPs.append(message[3])
+        s_AS.append(message[4])
+
+        if m_type == 'A':
+            prefixes.append(message[5])
+            AS_PATH_list = message[6].split(' ')
+            AS_PATHs.append(AS_PATH_list)
+        elif m_type == 'W':
+            prefixes.append(message[5])
+            AS_PATHs.append([])
+        elif m_type == 'STATE':
+            prefixes.append('')
+            AS_PATHs.append([])
 
 
 if __name__ == '__main__':
@@ -61,6 +65,10 @@ if __name__ == '__main__':
     result_directory = experiment['resultDirectory']
     file_ext = experiment['resultFormat']
 
+    # this will be used to filter data that would be out of the experiment window
+    from_time = exp.get_experiment_from_time(exp_name)
+    to_time = exp.get_experiment_to_time(exp_name)
+
     # VARIABLES (pathlib)
     file_path = '/srv/agarcia/passive_mrai/bgp_updates/' + collector + '/'
     bgpdump_path = '/srv/agarcia/TFM/bgpdump'
@@ -69,7 +77,8 @@ if __name__ == '__main__':
     exp.per_step_dir(exp_name, step_dir)
     output_file_path = result_directory + exp_name + step_dir + '/' + collector + '_' + from_date + '-' + to_date + file_ext
 
-    write_flag = f.overwrite_file(output_file_path)
+    write_flag = exp.check_date_ok(from_date) and exp.check_date_ok(to_date)
+    write_flag = write_flag and f.overwrite_file(output_file_path)
 
     if 'rrc' in collector:
         hop_size = 5
@@ -77,10 +86,11 @@ if __name__ == '__main__':
         hop_size = 15
     else:
         print('Collector type could not be recognised. Finishing execution...')
-        write_flag == 0
+        write_flag = False
 
-    if write_flag == 1:
+    if write_flag:
 
+        # UPDATES LOAD
         from_min = int(from_date.split('.')[1][2:4])
         to_min = int(to_date.split('.')[1][2:4])
 
@@ -173,18 +183,23 @@ if __name__ == '__main__':
                         for mm in range(from_min_aux, to_min_aux + 1, hop_size):
                             mm_str = format_number_to_string(mm)
 
-                            print 'Loading {}'.format(file_path + 'updates.' + year_str + month_str + dd_str + '.' + hh_str + mm_str)
-                            if not os.path.isfile(file_path + 'updates.' + year_str + month_str + dd_str + '.' + hh_str + mm_str):
-                                os.system('curl http://data.ris.ripe.net/' + collector + '/' + year_str + '.' + month_str + '/' + 'updates.' + year_str + month_str + dd_str + '.' + hh_str + mm_str + '.gz' + ' -o ' + file_path + 'updates.' + year_str + month_str + dd_str + '.' + hh_str + mm_str + '.gz')
-                                os.system('gzip -d ' + file_path + 'updates.' + year_str + month_str + dd_str + '.' + hh_str + mm_str + '.gz')
-                            
+                            print 'Loading {}'.format(
+                                file_path + 'updates.' + year_str + month_str + dd_str + '.' + hh_str + mm_str)
+                            if not os.path.isfile(
+                                    file_path + 'updates.' + year_str + month_str + dd_str + '.' + hh_str + mm_str):
+                                os.system(
+                                    'curl http://data.ris.ripe.net/' + collector + '/' + year_str + '.' + month_str + '/' + 'updates.' + year_str + month_str + dd_str + '.' + hh_str + mm_str + '.gz' + ' -o ' + file_path + 'updates.' + year_str + month_str + dd_str + '.' + hh_str + mm_str + '.gz')
+                                os.system(
+                                    'gzip -d ' + file_path + 'updates.' + year_str + month_str + dd_str + '.' + hh_str + mm_str + '.gz')
+
                             try:
                                 update_lines += subprocess.check_output(
                                     [bgpdump_path, '-m',
                                      file_path + 'updates.' + year_str + month_str + dd_str + '.' + hh_str + mm_str]).strip().split(
                                     '\n')
                             except:
-                                print ('UNAVAILABLE file: ' + file_path + 'updates.' + year_str + month_str + dd_str + '.' + hh_str + mm_str)
+                                print (
+                                        'UNAVAILABLE file: ' + file_path + 'updates.' + year_str + month_str + dd_str + '.' + hh_str + mm_str)
 
         # DATA FIELDS
         times = []
@@ -196,7 +211,7 @@ if __name__ == '__main__':
 
         # dump data into several lists
         for i in range(len(update_lines)):
-            dump_into_lists(update_lines[i], times, types, s_IPs, s_AS, prefixes, AS_PATHs)
+            dump_into_lists(update_lines[i], times, types, s_IPs, s_AS, prefixes, AS_PATHs, from_time, to_time)
 
         print (' Data saved as lists!')
 

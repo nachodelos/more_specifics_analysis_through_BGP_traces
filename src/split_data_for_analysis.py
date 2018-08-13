@@ -64,7 +64,7 @@ if __name__ == '__main__':
     step_dir = '/5.split_data_for_analysis/IPv6'
     exp.per_step_dir(exp_name, step_dir)
 
-    input_file_path = result_directory + exp_name + '/4.delete_withdraw_messages/' + collector + '_' + from_date + '-' + to_date + file_ext
+    input_file_path = result_directory + exp_name + '/4.concatenate_RIB_data/' + collector + '_' + from_date + '-' + to_date + file_ext
     output_file_path = result_directory + exp_name + step_dir + '/' + collector + '_' + from_date + '-' + to_date + file_ext
 
     write_flag = f.overwrite_file(output_file_path)
@@ -79,6 +79,9 @@ if __name__ == '__main__':
         print "Splitting {} advises...".format(len(df_advises))
 
         df_IPv4_updates, df_IPv6_updates = separate_IPv_types(df_advises)
+
+        df_IPv4_updates = df_IPv4_updates.drop(['Unnamed: 0'], axis=1)
+        df_IPv6_updates = df_IPv6_updates.drop(['Unnamed: 0'], axis=1)
 
         step_dir = '/5.split_data_for_analysis/IPv4'
         output_file_path = result_directory + exp_name + step_dir + '/' + collector + '_' + from_date + '-' + to_date + file_ext

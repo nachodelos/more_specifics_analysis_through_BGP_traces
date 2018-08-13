@@ -28,14 +28,13 @@ run as\n
 "
 
 # rrc18 has few data, allows fast tests
-SINGLE_COLLECTOR_FOR_TESTS='rrc00 rrc04 rrc05 rrc07 rrc10'
-
+SINGLE_COLLECTOR_FOR_TESTS='rrc00 rrc04 rrc07 rrc10'
 
 # Check the 'execute_command_for_each_collector' line in each code 
 # block to see if it is active or not (steps not needed are disabled)
 
 # Update as more tests are included
-ALL_TESTS_VECTOR="1 2 3 4"
+ALL_TESTS_VECTOR="1 2 3 4 5 6 7"
 
 if [ $# -eq 0 ]; then
     echo -e './experiment.sh exp_name test_vector  \n    missing exp_name'
@@ -148,10 +147,39 @@ fi
 max 0
 
 # compute noise_filtered_updates
-C4_LOG_FILE="${LOG_DIR}$EXP_NAME.more_specifics_analysis.log"
-C4=' " ./more_specifics_analysis.py --load $EXP_NAME,$collector" '
+C4_LOG_FILE="${LOG_DIR}$EXP_NAME.concatenate_RIB_data.log"
+C4=' " ./concatenate_RIB_data.py --load $EXP_NAME,$collector" '
 if [[ $TEST_VECTOR == *"4"* ]]; then
     execute_command_for_each_collector "$C4" $C4_LOG_FILE
+fi
+
+# wait all previous commands to finish
+max 0
+
+# compute noise_filtered_updates
+C5_LOG_FILE="${LOG_DIR}$EXP_NAME.split_data_for_analysis.log"
+C5=' " ./split_data_for_analysis.py --load $EXP_NAME,$collector" '
+if [[ $TEST_VECTOR == *"5"* ]]; then
+    execute_command_for_each_collector "$C5" $C5_LOG_FILE
+fi
+
+# wait all previous commands to finish
+max 0
+
+# compute noise_filtered_updates
+C6_LOG_FILE="${LOG_DIR}$EXP_NAME.more_specifics_analysis.log"
+C6=' " ./more_specifics_analysis.py --load $EXP_NAME,$collector" '
+if [[ $TEST_VECTOR == *"6"* ]]; then
+    execute_command_for_each_collector "$C6" $C6_LOG_FILE
+fi
+
+max 0
+
+# compute noise_filtered_updates
+C7_LOG_FILE="${LOG_DIR}$EXP_NAME.combine_collector_data.log"
+C7=' " ./combine_collector_data.py --load $EXP_NAME,$collector" '
+if [[ $TEST_VECTOR == *"7"* ]]; then
+    execute_command_for_each_collector "$C7" $C7_LOG_FILE
 fi
 
 # Include per_collector_analysis2html_report (still executed in zompopo)

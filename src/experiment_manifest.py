@@ -30,30 +30,24 @@ import calendar
 # - resultFormat could be .csv or .xlsx The execution is briefer with .csv but it is less efficient in terms of storage
 experiments = {
     'experiment_1': {'description': 'Developing tests',
-                     'initDay': '20171230.2350',  # ts 1509494400,
-                     'endDay': '20180101.2350',  # 'endTime': 1509667200,      # two days later, Nov 3rd ...
+                     'initDay': '20180108.0000',  # ts 1509494400,
+                     'endDay': '20180108.0800',  # 'endTime': 1509667200,      # two days later, Nov 3rd ...
                      'resultDirectory': '/srv/agarcia/igutierrez/results/',
-                     'resultFormat': '.xlsx'
+                     'resultFormat': '.csv'
                      },
     'experiment_2': {'description': 'Developing tests',
-                     'initDay': '20180108.0400',  # ts 1509494400,
-                     'endDay': '20180108.0410',  # 'endTime': 1509667200,      # two days later, Nov 3rd ...
+                     'initDay': '20180108.0000',  # ts 1509494400,
+                     'endDay': '20180109.0000',  # 'endTime': 1509667200,      # two days later, Nov 3rd ...
                      'resultDirectory': '/srv/agarcia/igutierrez/results/',
                      'resultFormat': '.csv'
-
                      },
     'experiment_3': {'description': 'Developing tests',
-                     'initDay': '20171230.2350',  # ts 1509494400,
-                     'endDay': '20171231.0500',  # 'endTime': 1509667200,      # two days later, Nov 3rd ...
+                     'initDay': '20130108.0000',  # ts 1509494400,
+                     'endDay': '20130108.0800',  # 'endTime': 1509667200,      # two days later, Nov 3rd ...
                      'resultDirectory': '/srv/agarcia/igutierrez/results/',
                      'resultFormat': '.csv'
 
-                     },
-    'experiment_4': {'description': 'Developing tests',
-                     'initDay': '20171230.2350',  # ts 1509494400,
-                     'endDay': '20180101.2350',  # 'endTime': 1509667200,      # two days later, Nov 3rd ...
-                     'resultDirectory': '/srv/agarcia/igutierrez/results/',
-                     'resultFormat': '.xlsx'},
+                     }
     # Put here more experiments, never remove any (to keep the record)
 }
 
@@ -90,17 +84,20 @@ def check_exp_name_ok(expName):
         exit(1)
 
 
-# Check if starting time is aligned with 00:00:00
-# def _check_exp_starting_time_alignment(expName):
-#     # >>> time.gmtime(1509494400)
-#     # time.struct_time(tm_year=2017, tm_mon=11, tm_mday=1, tm_hour=0, tm_min=0, tm_sec=0, tm_wday=2, tm_yday=305, tm_isdst=0)
-#     starting_time = gmtime(experiments[expName]['initTime'])
-#     if (starting_time.tm_hour != 0 or starting_time.tm_min != 0 or starting_time.tm_sec != 0):
-#         print('Unexpected initTime alignment, initTime: {} ').format(starting_time)
-#         exit(1)
-#     if starting_time.tm_year < 2000:
-#         print('initTime before 2000, too early')
-#         exit(1)
+def check_date_ok(fullday):
+    if len(fullday) != 13:
+        print('check_init_day_ok, wrong day format')
+        exit(1)
+
+    hour = fullday[9:11]
+    minute = fullday[11:13]
+
+    if (hour == '00' or hour == '08' or hour == '16') and minute == '00':
+        return True
+    else:
+        print('Incorrect date format. Hour must be multiple of 8 and minutes = 00')
+        return False
+
 
 # fullday ~ '20171101'
 def day2timestamp(fullday):
@@ -111,7 +108,9 @@ def day2timestamp(fullday):
     year = int(fullday[:4])
     month = int(fullday[4:6])
     day = int(fullday[6:8])
-    return calendar.timegm((year, month, day, 0, 0, 0, 0))
+    hour = int(fullday[9:11])
+    minute = int(fullday[11:13])
+    return calendar.timegm((year, month, day, hour, minute, 0, 0))
 
 
 def timestamp2day(timestamp):
@@ -132,12 +131,23 @@ def experiment_end_day(expName):
     return experiments[expName]['endDay']
 
 
-def experiment_number_days(expName):
+def get_experiment_from_time(expName):
+    check_exp_name_ok(expName)
+    return day2timestamp(experiments[expName]['initDay'])
+
+
+def get_experiment_to_time(expName):
+    check_exp_name_ok(expName)
+    return day2timestamp(experiments[expName]['endDay'])
+
+
+def get_experiment_number_days(expName):
     check_exp_name_ok(expName)
     return (day2timestamp(experiments[expName]['endDay']) - day2timestamp(experiments[expName]['initDay'])) / (
-                24 * 60 * 60)
+            24 * 60 * 60)
 
-def experiment_result_format(expName):
+
+def get_experiment_result_format(expName):
     check_exp_name_ok(expName)
     return experiments[expName]['resultFormat']
 
@@ -150,21 +160,8 @@ def print_experiment_info(expName):
     print('\nExperiment: {}').format(expName)
     print('  Starting day (UNIX Timestamp): {}').format(experiment_init_day(expName))
     print('  End day (UNIX Timestamp): {}').format(experiment_end_day(expName))
-    print('  ... number of days: {}').format(experiment_number_days(expName))
-    print('  Result Format : {} \n').format(experiment_result_format(expName))
-
-
-# returns list of active collectors at the time of the experiment
-def experiment_collectors(expName):
-    full_day = experiment_init_day(expName)
-    year = int(full_day[:4])
-    collector_list = generate_collector_names(year)
-
-    collector_str = ''
-    # return in string 'route-views.eqix' 'route-views.isc' ..
-    for collector in collector_list:
-        collector_str += collector + " "
-    return collector_str
+    print('  ... number of days: {}').format(get_experiment_number_days(expName))
+    print('  Result Format : {} \n').format(get_experiment_result_format(expName))
 
 
 ###
@@ -223,7 +220,7 @@ def per_step_dir(expName, step):
 def filename_per_collector(expName, collector, last_dir, file_ext):
     base_dir = experiment_result_dir(expName)
     starting_day = experiment_init_day(expName)
-    number_days = experiment_number_days(expName)
+    number_days = get_experiment_number_days(expName)
     directory = base_dir + last_dir
     if not os.path.isdir(directory):
         print('Creating directory {}').format(directory)
@@ -243,68 +240,3 @@ def write_README(expName, last_dir, readme_text):
     filename = directory + '/README'
     with open(filename, 'wb') as readme_file:
         readme_file.write(readme_text)
-
-
-# Test (and create, if needed) per collector directories
-
-# Returns (interval_number, interval_type) for a given update
-# (34, 'A')
-# (35, 'W')
-def interval_number_and_type(expName, update):
-    if 'ris_beacons' == experiments[expName]['beaconType']:
-        return ris_interval_number_and_type(expName, update)
-    else:
-        # define for other types
-        raise Exception('only defined for RIS')
-
-
-# returns (interval_number, init_time of interval, interval_type 'A'/'W)
-def ris_interval_number_and_type(expName, update):
-    # could use prefix in the future (for non-ris beacons)
-    elemtype, timestamp, monitor, peer_asn, fields = update
-
-    # [(1509494400, 1509501600, 'A'), (1509501600, 1509508800, 'W'), 
-    interval_list = experiment_beacon_adv_wd_times(expName)
-    interval_number = 0
-    for interval in interval_list:
-        if timestamp >= interval[0] and timestamp < interval[1]:
-            return (interval_number, interval[0], interval[2])
-        interval_number += 1
-
-    # not found in any interval is an error
-    print('noise_filtered_updates2RFD_updates: ERROR, timestamp {} could not be found in interval, exiting').format(
-        timestamp)
-    exit(1)
-
-
-def ris_interval_init_timestamp(expName, interval_number):
-    interval_list = experiment_beacon_adv_wd_times(expName)
-    return (interval_list[interval_number][0])
-
-
-def interval_init_timestamp(expName, interval_number):
-    if 'ris_beacons' == experiments[expName]['beaconType']:
-        return ris_interval_init_timestamp(expName, interval_number)
-    else:
-        # define for other types
-        raise Exception('only defined for RIS')
-
-    # CLI
-
-
-# --print_test 0testDec17
-if __name__ == "__main__":
-    parser = ArgumentParser()
-    # ./experiment_manifest.py --print_test 0testDec17
-    parser.add_argument("--print_test", help='--print_test TEST_NAME, prints info for considered test', default='')
-    parser.add_argument("--collector_names",
-                        help='--collector_names TEST_NAME, returns collector names active for considered test (to be used by shell)')
-
-    args = parser.parse_args()
-
-    if args.print_test:
-        print_experiment_info(args.print_test)
-    if args.collector_names:
-        print(experiment_collectors(args.collector_names))
-    else:
-        print('Nothing requested... exiting')
