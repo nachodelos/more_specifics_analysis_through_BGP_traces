@@ -28,7 +28,7 @@ def dump_into_lists(update_lines, times, types, s_IPs, s_AS, prefixes, AS_PATHs,
     time = int(message[1])
 
     # in this way this code avoids to obtain unexpected results
-    if from_time < time < to_time:
+    if from_t < time < to_t:
         times.append(message[1])
         m_type = message[2]
 
