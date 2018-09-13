@@ -140,7 +140,7 @@ def prefix_visibility_analysis(df_sort, exp_n):
     return monitors, prefixes, visibilities_per_prefix, updates_per_prefix, ASes
 
 
-def get_more_specific_mask(covered_prefixes):
+def get_most_specific_mask(covered_prefixes):
     masks = []
 
     for pref_rnode in covered_prefixes:
@@ -156,24 +156,46 @@ def get_results(pref, tree):
     covered_rnodes = tree.search_covered(pref)
 
     least_specific_pref = least_specific_rnode.prefix
-    more_specifc_mask = get_more_specific_mask(covered_rnodes)
+    most_specifc_mask = get_most_specific_mask(covered_rnodes)
     # Get current prefix length
     pref_len = int(pref.split('/')[1])
 
-    if more_specifc_mask == pref_len and least_specific_pref == pref:
+    if most_specifc_mask == pref_len and least_specific_pref == pref:
         pref_type = 'unique'
         deep = 0
-    elif more_specifc_mask == pref_len and least_specific_pref != pref:
+
+    elif most_specifc_mask == pref_len and least_specific_pref != pref:
         pref_type = 'more_specific'
-        deep = more_specifc_mask - least_specific_rnode.prefixlen
-    elif more_specifc_mask != pref_len and least_specific_pref == pref:
+        deep = most_specifc_mask - least_specific_rnode.prefixlen
+    elif most_specifc_mask != pref_len and least_specific_pref == pref:
         pref_type = 'least_specific'
         deep = 0
     else:
-        pref_type = 'intermediate'
-        deep = more_specifc_mask - tree.search_exact(pref).prefixlen
+        pref_type = 'more_specific'
+        deep = tree.search_exact(pref).prefixlen - least_specific_rnode.prefixlen
 
     return pref_type, deep
+
+
+def cluster_more_specifcs(pref, tree):
+    least_specific_rnode = tree.search_worst(pref)
+    covered_rnodes = tree.search_covered(pref)
+
+    least_specific_pref = least_specific_rnode.prefix
+    most_specifc_mask = get_most_specific_mask(covered_rnodes)
+    # Get current prefix length
+    pref_len = int(pref.split('/')[1])
+
+    if most_specifc_mask == pref_len and least_specific_pref == pref:
+        pref_type = 'more_specific - single level'
+    elif most_specifc_mask == pref_len and least_specific_pref != pref:
+        pref_type = 'more_specific - more_specific'
+    elif most_specifc_mask != pref_len and least_specific_pref == pref:
+        pref_type = 'more_specific - TOP'
+    else:
+        pref_type = 'more_specific - more_specific'
+
+    return pref_type
 
 
 def clustering_prefixes(df_pref_per_monitor):
@@ -200,18 +222,24 @@ def clustering_prefixes(df_pref_per_monitor):
         for prefix in prefixes_per_monitor:
             rtree.add(prefix)
 
-        # Get results -> pref_type and DEPTH
-        for prefix in prefixes_per_monitor:
-            pref_type, deep = get_results(prefix, rtree)
-            pref_types.append(pref_type)
-            deeps.append(deep)
+        # Get results -> pref_type and deep
+        if 'TYPE' in df_pref_per_monitor:
+            for prefix in prefixes_per_monitor:
+                pref_type = cluster_more_specifcs(prefix, rtree)
+                pref_types.append(pref_type)
+        else:
+            for prefix in prefixes_per_monitor:
+                pref_type, deep = get_results(prefix, rtree)
+                pref_types.append(pref_type)
+                deeps.append(deep)
 
     return pref_types, deeps
 
 
 def IPv_analysis(IPv_type, exp_n, res_directory, coll, from_d, to_d, ext):
     input_file_path = res_directory + exp_n + '/5.split_data_for_analysis/' + IPv_type + '/' + coll + '_' + from_d + '-' + to_d + ext
-    output_file_path = res_directory + exp_n + '/6.more_specifics_analysis/' + IPv_type + '/' + collector + '_' + from_d + '-' + to_d + '.csv'
+    output_file_path = res_directory + exp_n + '/6.more_specifics_analysis/' + IPv_type + '/' + coll + '_' + from_d + '-' + to_d + '.csv'
+
     write_flag = f.overwrite_file(output_file_path)
 
     if write_flag:
@@ -222,26 +250,42 @@ def IPv_analysis(IPv_type, exp_n, res_directory, coll, from_d, to_d, ext):
         df_sort = df_sort.reset_index(drop=True)
         df_sort = df_sort.drop(['Unnamed: 0'], axis=1)
 
-        # Drop default specified in routing table
-        # df_sort = df_sort[df_sort['PREFIX'] != '0.0.0.0/0']
-
         print "Data loaded successfully"
 
         # 1.Prefix visibility analysis
         print 'Getting visibility per prefix...'
-        monitors, prefixes, visibilities_per_prefix, updates_per_prefix, ASes = prefix_visibility_analysis(df_sort, exp_n)
+        monitors, prefixes, visibilities_per_prefix, updates_per_prefix, ASes = prefix_visibility_analysis(df_sort,
+                                                                                                           exp_n)
 
         df_prefixes_per_monitor = pd.DataFrame(
             {'MONITOR': monitors, 'PREFIX': prefixes})
 
-        # 2.Clustering prefixes
+        # 2.Clustering prefixes into more specifics, least_specifics and uniques (non-specifics)
         pref_types, deeps = clustering_prefixes(df_prefixes_per_monitor)
 
         df_visibility_per_prefix = pd.DataFrame(
-            {'MONITOR': monitors, 'PREFIX': prefixes, 'VISIBILITY': visibilities_per_prefix,'UPDATES': updates_per_prefix, 'TYPE': pref_types,
+            {'MONITOR': monitors, 'PREFIX': prefixes, 'VISIBILITY': visibilities_per_prefix,
+             'UPDATES': updates_per_prefix, 'TYPE': pref_types,
              'DEEP': deeps, 'ORIGIN': ASes})
+
+        # 3.Clustering more specifics prefixes into TOP, single level and more specifics of other more specifics
+        df_more_specifics = df_visibility_per_prefix[df_visibility_per_prefix['TYPE'] == 'more_specific']
+        df_more_specifics = df_more_specifics.reset_index(drop=True)
+        df_more_specifics = df_more_specifics.drop(['Unnamed: 0'], axis=1)
+
+        pref_types, deeps = clustering_prefixes(df_more_specifics)
+
+        # Replace types for more detailed types
+        df_more_specifics['TYPE'] = pref_types
+
+        df_others = df_visibility_per_prefix[df_visibility_per_prefix['TYPE'] != 'more_specific']
+        df_others = df_others.reset_index(drop=True)
+        df_others = df_others.drop(['Unnamed: 0'], axis=1)
+
+        df_visibility_per_prefix = df_more_specifics.append(df_others, ignore_index=True)
+
         output_file_path = res_directory + exp_n + '/6.more_specifics_analysis/' + IPv_type + '/' + collector + '_' + from_d + '-' + to_d + '.csv'
-        f.save_file(df_visibility_per_prefix, '.csv', output_file_path)
+        f.save_file(df_visibility_per_prefix, ext, output_file_path)
 
 
 if __name__ == "__main__":

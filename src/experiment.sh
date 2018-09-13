@@ -28,7 +28,7 @@ run as\n
 "
 
 # rrc18 has few data, allows fast tests
-SINGLE_COLLECTOR_FOR_TESTS='rrc00 rrc04 rrc07 rrc10'
+SINGLE_COLLECTOR_FOR_TESTS='rrc00 rrc01 rrc04 rrc05 rrc07 rrc10 rrc11 rrc12 rrc13 rrc14 rrc15'
 
 # Check the 'execute_command_for_each_collector' line in each code 
 # block to see if it is active or not (steps not needed are disabled)
@@ -74,8 +74,9 @@ else
         exit 1
     fi
     ANAL_NAME=$2
-    
-    COLLECTOR_NAMES=$( ./experiment_manifest.py --collector_names $EXP_NAME )
+
+    COLLECTOR_NAMES=$SINGLE_COLLECTOR_FOR_TESTS
+    # COLLECTOR_NAMES=$( ./experiment_manifest.py --collector_names $EXP_NAME )
     # COLLECTOR_NAMES="route-views.eqix route-views.isc route-views.jinx route-views.linx route-views.nwax route-views.perth route-views.saopaulo route-views.sfmix route-views.sg route-views.soxrs route-views.sydney route-views.telxatl route-views.wide route-views2 route-views3 route-views4 rrc00 rrc01 rrc03 rrc04 rrc05 rrc06 rrc07 rrc10 rrc11 rrc12 rrc13 rrc14 rrc15 rrc16 rrc18 rrc19 rrc20"
     #COLLECTOR_NAMES="rrc21"
 fi
